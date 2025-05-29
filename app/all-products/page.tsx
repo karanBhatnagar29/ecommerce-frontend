@@ -5,6 +5,7 @@ import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import axios from "axios";
+import AddToCartButton from "@/lib/cartApi";
 
 const placeholderImage = "/placeholder.png";
 
@@ -37,10 +38,6 @@ export default function ProductPage() {
 
     fetchData();
   }, []);
-
-  const handleAddToCart = (product: any) => {
-    console.log("Add to Cart:", product.name);
-  };
 
   const handleBuyNow = (product: any) => {
     console.log("Buy Now:", product.name);
@@ -95,7 +92,8 @@ export default function ProductPage() {
           return (
             <div
               key={product._id}
-              className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden"
+              className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+              onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
               <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
@@ -136,16 +134,19 @@ export default function ProductPage() {
 
                 {/* Buttons */}
                 <div className="mt-4 flex flex-col space-y-2">
-                  <Button
-                    className="w-full bg-emerald-600 hover:bg-emerald-700 text-white"
-                    onClick={() => handleAddToCart(product)}
-                  >
-                    🛒 Add to Cart
-                  </Button>
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AddToCartButton
+                      productId={product._id}
+                      variantLabel={product.variants?.[0]?.label}
+                    />
+                  </div>
 
                   <Button
                     className="w-full bg-yellow-400 hover:bg-yellow-500 text-white"
-                    onClick={() => handleBuyNow(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBuyNow(product);
+                    }}
                   >
                     ⚡ Buy Now
                   </Button>
@@ -153,7 +154,10 @@ export default function ProductPage() {
                   <Button
                     variant="outline"
                     className="w-full border-pink-500 text-pink-500 hover:bg-pink-50"
-                    onClick={() => handleAddToWishlist(product)}
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToWishlist(product);
+                    }}
                   >
                     💖 Add to Wishlist
                   </Button>

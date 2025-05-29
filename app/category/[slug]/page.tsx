@@ -5,11 +5,11 @@ export const runtime = "nodejs";
 import axios from "axios";
 import Image from "next/image";
 import { notFound } from "next/navigation";
+import Link from "next/link";
 
 const placeholderImage = "/placeholder.png";
-const fallbackBanner = "/banners/default_category.jpg"; // Fallback banner
+const fallbackBanner = "/banners/default_category.jpg";
 
-// Map slugs to corresponding banner image paths (make sure these exist in /public/category-banner/)
 const bannerMap: Record<string, string> = {
   ghee: "/category-banner/ghee.jpg",
   spices: "/category-banner/spices.jpg",
@@ -46,12 +46,11 @@ export default async function CategoryPage({ params }: Props) {
       { headers: { "Cache-Control": "no-store" } }
     );
 
-    // Select the banner based on slug or fallback
     const bannerImage = bannerMap[slug] || fallbackBanner;
 
     return (
       <div className="bg-gray-50 min-h-screen">
-        {/* Banner Section */}
+        {/* Banner */}
         <div className="relative w-full h-44 md:h-64">
           <Image
             src={bannerImage}
@@ -67,7 +66,7 @@ export default async function CategoryPage({ params }: Props) {
           </div>
         </div>
 
-        {/* Products Section */}
+        {/* Product Grid */}
         <div className="px-4 md:px-12 py-8">
           <div className="mb-8">
             <h2 className="text-xl md:text-2xl font-semibold text-gray-800 bg-orange-100 px-4 py-2 inline-block rounded-lg">
@@ -81,55 +80,58 @@ export default async function CategoryPage({ params }: Props) {
               No products found for this category.
             </p>
           ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6">
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
               {products.map((product) => {
                 const imageUrl = product.images?.[0] || placeholderImage;
                 const price = product.variants?.[0]?.price || 0;
 
                 return (
-                  <div
-                    key={product._id}
-                    className="bg-white rounded-2xl shadow-md hover:shadow-xl border hover:border-orange-400 transition-all duration-300 flex flex-col overflow-hidden"
-                  >
-                    <div className="relative w-full h-64 bg-gray-100 rounded-t-2xl overflow-hidden">
-                      <Image
-                        src={imageUrl}
-                        alt={product.name}
-                        fill
-                        className="object-cover"
-                        priority
-                      />
-                      <div className="absolute top-2 left-2 bg-yellow-400 text-white text-xs px-2 py-1 rounded-full">
-                        ⭐ Best Seller
-                      </div>
-                    </div>
-
-                    <div className="p-4 flex flex-col justify-between flex-grow">
-                      <div>
-                        <h3 className="font-semibold text-base text-gray-800 line-clamp-1">
-                          {product.name}
-                        </h3>
-                        <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                          {product.description}
-                        </p>
-                      </div>
-
-                      <div className="text-yellow-500 mt-3 text-sm">
-                        {"★".repeat(Math.round(product.rating))}
-                        <span className="text-gray-500 ml-1">
-                          {product.numReviews} reviews
-                        </span>
-                      </div>
-
-                      <div className="mt-4">
-                        <div className="text-lg font-bold text-gray-900">
-                          ₹{price.toLocaleString()}
+                  <div key={product._id} className="flex flex-col h-full">
+                    <Link href={`/product/${product._id}`} className="h-full">
+                      <div className="flex flex-col h-full bg-white rounded-2xl shadow-md hover:shadow-xl border hover:border-orange-400 transition-all duration-300 overflow-hidden">
+                        {/* Image */}
+                        <div className="relative w-full h-56 md:h-64 bg-gray-100">
+                          <Image
+                            src={imageUrl}
+                            alt={product.name}
+                            fill
+                            className="object-cover"
+                            priority
+                          />
+                          <div className="absolute top-2 left-2 bg-yellow-400 text-white text-xs px-2 py-1 rounded-full">
+                            ⭐ Best Seller
+                          </div>
                         </div>
-                        <div className="text-sm text-green-600 font-medium">
-                          Best Price ₹{price.toLocaleString()} with coupon
+
+                        {/* Content */}
+                        <div className="p-4 flex flex-col flex-grow justify-between">
+                          <div>
+                            <h3 className="font-semibold text-base text-gray-800 line-clamp-1">
+                              {product.name}
+                            </h3>
+                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
+                              {product.description}
+                            </p>
+                          </div>
+
+                          <div className="text-yellow-500 mt-3 text-sm">
+                            {"★".repeat(Math.round(product.rating))}
+                            <span className="text-gray-500 ml-1">
+                              {product.numReviews} reviews
+                            </span>
+                          </div>
+
+                          <div className="mt-4">
+                            <div className="text-lg font-bold text-gray-900">
+                              ₹{price.toLocaleString()}
+                            </div>
+                            <div className="text-sm text-green-600 font-medium">
+                              Best Price ₹{price.toLocaleString()} with coupon
+                            </div>
+                          </div>
                         </div>
                       </div>
-                    </div>
+                    </Link>
                   </div>
                 );
               })}
