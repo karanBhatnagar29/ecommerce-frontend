@@ -83,7 +83,7 @@ export default function HeroCarousel() {
             onClick={() => router.push("/all-products")}
           >
             Shop Now <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          </Button> 
         </div>
       </div>
 
