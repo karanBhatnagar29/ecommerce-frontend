@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import HeroCarousel from "@/components/hero/heroCarosuel";
+import Promise from "@/components/promise";
 
 const heroImages = [
   "/hero1.jpg", // Replace with your actual image URLs
@@ -24,6 +25,7 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <HeroCarousel />
+      <Promise />
     </div>
   );
 }

@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
 
 export default function CompleteProfile() {
   const [form, setForm] = useState({
@@ -32,9 +33,13 @@ export default function CompleteProfile() {
     setLoading(true);
     setError("");
     try {
-      await axios.put("http://localhost:3000/auth/complete-profile", form, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.put(
+        "http://localhost:3000/auth/complete-profile",
+        form,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       setSuccess(true);
       setTimeout(() => {

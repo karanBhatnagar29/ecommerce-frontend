@@ -1,147 +1,189 @@
-export const dynamic = "force-dynamic";
-export const dynamicParams = true;
-export const runtime = "nodejs";
+"use client";
 
-import axios from "axios";
 import Image from "next/image";
-import { notFound } from "next/navigation";
-import Link from "next/link";
+import { useEffect, useState } from "react";
+import { Button } from "@/components/ui/button";
+import { useRouter, useParams } from "next/navigation";
+import axios from "axios";
+import AddToCartButton from "@/lib/cartApi";
+import axiosInstance from "@/lib/axiosInstance";
 
 const placeholderImage = "/placeholder.png";
-const fallbackBanner = "/banners/default_category.jpg";
 
-const bannerMap: Record<string, string> = {
-  ghee: "/category-banner/ghee.jpg",
-  spices: "/category-banner/spices.jpg",
-  "kachi-ghani-oil-(unfiltered)": "/category-banner/oil.jpg",
-  "western-rajasthan's-dry-vegetables": "/category-banner/raj_spices.jpg",
-};
-
-type Product = {
-  _id: string;
+type Category = {
+  slug: string;
   name: string;
-  description: string;
-  brand: string;
-  images: string[];
-  variants: {
-    label: string;
-    price: number;
-    stock: number;
-    _id: string;
-  }[];
-  rating: number;
-  numReviews: number;
+  image?: string;
+  description?: string;
 };
 
-type Props = {
-  params: { slug: string };
-};
+export default function CategorySlugPage() {
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [products, setProducts] = useState([]);
+  const router = useRouter();
+  const params = useParams();
 
-export default async function CategoryPage({ params }: Props) {
-  const slug = decodeURIComponent(await Promise.resolve(params.slug));
+  const slug = decodeURIComponent(params?.slug as string);
 
-  try {
-    const { data: products } = await axios.get<Product[]>(
-      `${process.env.NEXT_PUBLIC_PRODUCTS_API}/category/${slug}`,
-      { headers: { "Cache-Control": "no-store" } }
-    );
+  useEffect(() => {
+    const fetchData = async () => {
+      try {
+        const [catRes, prodRes] = await Promise.all([
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_CATEGORY_API}`),
+          axiosInstance.get(
+            `${process.env.NEXT_PUBLIC_PRODUCTS_API}/category/${slug}`
+          ),
+        ]);
 
-    const bannerImage = bannerMap[slug] || fallbackBanner;
+        setCategories(catRes.data);
+        setProducts(prodRes.data);
+      } catch (error) {
+        console.error("Failed to fetch data", error);
+      }
+    };
 
-    return (
-      <div className="bg-gray-50 min-h-screen">
-        {/* Banner */}
-        <div className="relative w-full h-44 md:h-64">
-          <Image
-            src={bannerImage}
-            alt="Category Banner"
-            fill
-            className="object-cover"
-            priority
-          />
-          <div className="absolute inset-0 bg-black/50 flex items-center justify-center">
-            <h1 className="text-white text-3xl md:text-4xl font-bold capitalize tracking-wide text-center px-4">
-              {slug.replace(/-/g, " ")}
-            </h1>
-          </div>
-        </div>
+    fetchData();
+  }, [slug]);
 
-        {/* Product Grid */}
-        <div className="px-4 md:px-12 py-8">
-          <div className="mb-8">
-            <h2 className="text-xl md:text-2xl font-semibold text-gray-800 bg-orange-100 px-4 py-2 inline-block rounded-lg">
-              {products.length} product{products.length !== 1 && "s"} in "
-              {slug.replace(/-/g, " ")}"
-            </h2>
-          </div>
+  const handleBuyNow = (product: any) => {
+    console.log("Buy Now:", product.name);
+    // Redirect to checkout or product detail page if needed
+  };
 
-          {products.length === 0 ? (
-            <p className="text-gray-500 text-center">
-              No products found for this category.
-            </p>
-          ) : (
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-6 auto-rows-fr">
-              {products.map((product) => {
-                const imageUrl = product.images?.[0] || placeholderImage;
-                const price = product.variants?.[0]?.price || 0;
+  const handleAddToWishlist = (product: any) => {
+    console.log("Add to Wishlist:", product.name);
+    // Implement wishlist logic here
+  };
 
-                return (
-                  <div key={product._id} className="flex flex-col h-full">
-                    <Link href={`/product/${product._id}`} className="h-full">
-                      <div className="flex flex-col h-full bg-white rounded-2xl shadow-md hover:shadow-xl border hover:border-orange-400 transition-all duration-300 overflow-hidden">
-                        {/* Image */}
-                        <div className="relative w-full h-56 md:h-64 bg-gray-100">
-                          <Image
-                            src={imageUrl}
-                            alt={product.name}
-                            fill
-                            className="object-cover"
-                            priority
-                          />
-                          <div className="absolute top-2 left-2 bg-yellow-400 text-white text-xs px-2 py-1 rounded-full">
-                            ⭐ Best Seller
-                          </div>
-                        </div>
-
-                        {/* Content */}
-                        <div className="p-4 flex flex-col flex-grow justify-between">
-                          <div>
-                            <h3 className="font-semibold text-base text-gray-800 line-clamp-1">
-                              {product.name}
-                            </h3>
-                            <p className="text-sm text-gray-600 mt-1 line-clamp-2">
-                              {product.description}
-                            </p>
-                          </div>
-
-                          <div className="text-yellow-500 mt-3 text-sm">
-                            {"★".repeat(Math.round(product.rating))}
-                            <span className="text-gray-500 ml-1">
-                              {product.numReviews} reviews
-                            </span>
-                          </div>
-
-                          <div className="mt-4">
-                            <div className="text-lg font-bold text-gray-900">
-                              ₹{price.toLocaleString()}
-                            </div>
-                            <div className="text-sm text-green-600 font-medium">
-                              Best Price ₹{price.toLocaleString()} with coupon
-                            </div>
-                          </div>
-                        </div>
-                      </div>
-                    </Link>
-                  </div>
-                );
-              })}
-            </div>
-          )}
-        </div>
+  return (
+    <div className="px-4 md:px-12 py-6 bg-gray-50 min-h-screen">
+      {/* Banner */}
+      <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden bg-gray-200 mb-6 flex items-center justify-center text-gray-500 text-xl font-medium">
+        <img
+          src={`/category-banner/${slug}.jpg`}
+          alt={`${slug} banner`}
+          className="object-cover w-full h-full"
+          onError={(e) =>
+            ((e.target as HTMLImageElement).src =
+              "/banners/default_category.jpg")
+          }
+        />
       </div>
-    );
-  } catch (error) {
-    console.error("Failed to fetch products:", error);
-    return notFound();
-  }
+
+      {/* Categories */}
+      <div className="flex gap-6 justify-center overflow-x-auto pb-4 px-4 md:px-12 scroll-snap-x">
+        {categories.map((cat, i) => (
+          <div
+            key={i}
+            className="flex flex-col items-center scroll-snap-start w-24 shrink-0 cursor-pointer"
+            onClick={() =>
+              router.push(`/category/${encodeURIComponent(cat.slug)}`)
+            }
+          >
+            <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-orange-400 hover:border-orange-500 transition duration-200">
+              <Image
+                src={cat.image || placeholderImage}
+                alt={cat.name}
+                width={80}
+                height={80}
+                className="object-cover w-full h-full"
+              />
+            </div>
+            <span className="mt-1 text-center text-sm">{cat.name}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Product Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-6">
+        {products.map((product: any) => {
+          const firstVariant = product.variants?.[0];
+          const price = firstVariant?.price;
+          const originalPrice = firstVariant?.originalPrice || price + 300;
+
+          return (
+            <div
+              key={product._id}
+              className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+              onClick={() => router.push(`/product/${product._id}`)}
+            >
+              {/* Product Image */}
+              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
+                <Image
+                  src={product.images?.[0] || placeholderImage}
+                  alt={product.name || "Product"}
+                  fill
+                  className="object-cover"
+                />
+                <div className="absolute top-2 left-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full shadow">
+                  ⭐ Best Seller
+                </div>
+              </div>
+
+              {/* Product Info */}
+              <div className="p-4 flex-1 flex flex-col justify-between">
+                <div>
+                  <h3 className="text-lg font-semibold text-gray-800 truncate">
+                    {product.name}
+                  </h3>
+                  <p className="text-sm text-gray-500 mt-1 truncate">
+                    {product.description}
+                  </p>
+                </div>
+
+                {/* Price */}
+                <div className="mt-2">
+                  <p className="text-lg font-bold text-gray-800">
+                    ₹{price?.toLocaleString("en-IN") ?? "N/A"}{" "}
+                    <span className="text-sm font-medium text-gray-400 line-through ml-1">
+                      ₹{originalPrice?.toLocaleString("en-IN")}
+                    </span>
+                  </p>
+                  <p className="text-sm text-emerald-600 font-medium">
+                    Save ₹{(originalPrice - price).toLocaleString("en-IN")}
+                  </p>
+                </div>
+
+                {/* Action Buttons */}
+                <div className="mt-4 flex justify-between items-center gap-2">
+                  {/* Buy Now */}
+                  <Button
+                    size="sm"
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 flex-1"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleBuyNow(product);
+                    }}
+                  >
+                    ⚡ Buy Now
+                  </Button>
+
+                  {/* Cart */}
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AddToCartButton
+                      productId={product._id}
+                      variantLabel={product.variants?.[0]?.label}
+                    />
+                  </div>
+
+                  {/* Wishlist */}
+                  <Button
+                    size="sm"
+                    variant="outline"
+                    className="text-pink-500 border-pink-400 hover:bg-pink-50 text-xs px-3"
+                    onClick={(e) => {
+                      e.stopPropagation();
+                      handleAddToWishlist(product);
+                    }}
+                  >
+                    💖
+                  </Button>
+                </div>
+              </div>
+            </div>
+          );
+        })}
+      </div>
+    </div>
+  );
 }

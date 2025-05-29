@@ -52,7 +52,7 @@ export default function CartPage() {
                 ₹{item.subtotal}
               </div>
               <button
-                onClick={() => handleRemove(item._id)}
+                onClick={() => handleRemove(item.productId._id)}
                 className="absolute top-2 right-2 text-xs text-red-600 hover:underline"
               >
                 Remove

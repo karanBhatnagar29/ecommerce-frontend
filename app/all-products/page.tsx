@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
 import axios from "axios";
 import AddToCartButton from "@/lib/cartApi";
+import axiosInstance from "@/lib/axiosInstance";
 
 const placeholderImage = "/placeholder.png";
 
@@ -25,8 +26,8 @@ export default function ProductPage() {
     const fetchData = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          axios.get(`${process.env.NEXT_PUBLIC_CATEGORY_API}`),
-          axios.get(`${process.env.NEXT_PUBLIC_PRODUCTS_API}`),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_CATEGORY_API}`),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_PRODUCTS_API}`),
         ]);
 
         setCategories(catRes.data);
@@ -132,17 +133,12 @@ export default function ProductPage() {
                   </p>
                 </div>
 
-                {/* Buttons */}
-                <div className="mt-4 flex flex-col space-y-2">
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <AddToCartButton
-                      productId={product._id}
-                      variantLabel={product.variants?.[0]?.label}
-                    />
-                  </div>
-
+                {/* Action Buttons Row */}
+                {/* Action Buttons Row */}
+                <div className="mt-4 flex justify-between items-center gap-2">
                   <Button
-                    className="w-full bg-yellow-400 hover:bg-yellow-500 text-white"
+                    size="sm"
+                    className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 flex-1"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleBuyNow(product);
@@ -151,15 +147,23 @@ export default function ProductPage() {
                     ⚡ Buy Now
                   </Button>
 
+                  <div onClick={(e) => e.stopPropagation()}>
+                    <AddToCartButton
+                      productId={product._id}
+                      variantLabel={product.variants?.[0]?.label}
+                    />
+                  </div>
+
                   <Button
+                    size="sm"
                     variant="outline"
-                    className="w-full border-pink-500 text-pink-500 hover:bg-pink-50"
+                    className="text-pink-500 border-pink-400 hover:bg-pink-50 text-xs px-3"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleAddToWishlist(product);
                     }}
                   >
-                    💖 Add to Wishlist
+                    💖
                   </Button>
                 </div>
               </div>

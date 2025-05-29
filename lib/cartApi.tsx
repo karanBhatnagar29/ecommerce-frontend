@@ -6,10 +6,11 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
+import { ShoppingCart, Check, Loader2 } from "lucide-react"; // icon components
 
 interface AddToCartButtonProps {
   productId: string;
-  variantLabel?: string; // optional prop
+  variantLabel?: string;
   quantity?: number;
 }
 
@@ -39,7 +40,7 @@ export default function AddToCartButton({
 
     setLoading(true);
     try {
-      await addItem(productId, safeVariantLabel, quantity); // ✅ fixed
+      await addItem(productId, safeVariantLabel, quantity);
       setSuccess(true);
       setTimeout(() => setSuccess(false), 2000);
     } catch (error) {
@@ -51,12 +52,20 @@ export default function AddToCartButton({
 
   return (
     <Button
-      style={{ backgroundColor: "#D97706", color: "white" }}
-      className="w-full"
+      size="sm"
+      variant="outline"
+      className="text-orange-600 border-orange-400 hover:bg-orange-50 p-2"
       onClick={handleAddToCart}
       disabled={loading}
+      title={success ? "Added to cart" : "Add to cart"}
     >
-      {loading ? "Adding..." : success ? "Added ✅" : "🛒 Add to Cart"}
+      {loading ? (
+        <Loader2 className="w-4 h-4 animate-spin" />
+      ) : success ? (
+        <Check className="w-4 h-4" />
+      ) : (
+        <ShoppingCart className="w-4 h-4" />
+      )}
     </Button>
   );
 }

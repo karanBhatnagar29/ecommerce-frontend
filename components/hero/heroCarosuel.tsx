@@ -4,6 +4,7 @@ import Image from "next/image";
 import { useState, useEffect } from "react";
 import { ArrowRight, ChevronLeft, ChevronRight } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { useRouter } from "next/navigation";
 
 const heroSlides = [
   {
@@ -28,6 +29,7 @@ const heroSlides = [
 
 export default function HeroCarousel() {
   const [currentSlide, setCurrentSlide] = useState(0);
+  const router = useRouter();
 
   useEffect(() => {
     const interval = setInterval(() => {
@@ -76,7 +78,10 @@ export default function HeroCarousel() {
             {heroSlides[currentSlide].subtitle}
           </p>
 
-          <Button className="mt-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 px-8 py-3 text-lg text-white">
+          <Button
+            className="mt-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 px-8 py-3 text-lg text-white"
+            onClick={() => router.push("/all-products")}
+          >
             Shop Now <ArrowRight className="ml-2 h-5 w-5" />
           </Button>
         </div>

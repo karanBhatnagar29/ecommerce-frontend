@@ -4,6 +4,7 @@ import { useState } from "react";
 import axios from "axios";
 import Cookies from "js-cookie";
 import { X } from "lucide-react";
+import axiosInstance from "@/lib/axiosInstance";
 
 export default function LoginPage() {
   const [phone, setPhone] = useState("");
@@ -14,7 +15,9 @@ export default function LoginPage() {
   const handleRequestOtp = async () => {
     setLoading(true);
     try {
-      await axios.post("http://localhost:3000/auth/request-otp", { phone });
+      await axiosInstance.post("http://localhost:3000/auth/request-otp", {
+        phone,
+      });
       setStep(2);
       alert("OTP sent! Check your terminal (for local dev)");
     } catch (err) {
@@ -27,10 +30,13 @@ export default function LoginPage() {
   const handleVerifyOtp = async () => {
     setLoading(true);
     try {
-      const res = await axios.post("http://localhost:3000/auth/verify-otp", {
-        phone,
-        otp,
-      });
+      const res = await axiosInstance.post(
+        "http://localhost:3000/auth/verify-otp",
+        {
+          phone,
+          otp,
+        }
+      );
 
       const { token, isProfileComplete } = res.data;
       Cookies.set("token", token, { expires: 7 });
@@ -77,7 +83,7 @@ export default function LoginPage() {
               <div className="flex items-center border rounded-md overflow-hidden mb-4">
                 <div className="flex items-center gap-2 px-3 bg-gray-100 text-gray-700">
                   <img
-                    src="/india.png" // Indian flag image in public folder
+                    src="/india-flag.svg" // Indian flag image in public folder
                     alt="IN"
                     className="h-4 w-5 object-contain"
                   />

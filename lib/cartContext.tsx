@@ -101,7 +101,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       });
 
       // Optional: re-fetch to confirm sync
-      // await fetchCart();
+      await fetchCart();
     } catch (error) {
       console.error("Failed to remove item from cart", error);
     }
