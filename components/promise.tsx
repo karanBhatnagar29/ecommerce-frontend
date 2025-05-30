@@ -31,7 +31,7 @@ const promises = [
 
 export default function Promise() {
   return (
-    <section className="bg-[#f5f5f5] py-12">
+    <section className="bg-[#f5f5f5] py-6">
       <div className="max-w-7xl mx-auto px-4 text-center">
         <h2 className="text-3xl md:text-4xl font-semibold text-green-800 mb-10">
           The Zesty Crops Promise

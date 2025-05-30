@@ -63,9 +63,10 @@ export default function CategorySlugPage() {
           src={`/category-banner/${slug}.jpg`}
           alt={`${slug} banner`}
           className="object-cover w-full h-full"
-          onError={(e) =>
-            ((e.target as HTMLImageElement).src =
-              "/banners/default_category.jpg")
+          onError={
+            (e) =>
+              ((e.target as HTMLImageElement).src =
+                "/category-banner/default_category.jpg") // ✅ correct path
           }
         />
       </div>

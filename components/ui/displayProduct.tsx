@@ -1,100 +1,74 @@
-"use client";
-
-import Image from "next/image";
-import { useEffect, useState } from "react";
+import React, { useEffect, useState } from "react";
+import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
-import { useRouter } from "next/navigation";
-import axios from "axios";
+import { Star } from "lucide-react";
+import Image from "next/image";
 import AddToCartButton from "@/lib/cartApi";
-import axiosInstance from "@/lib/axiosInstance";
 
 const placeholderImage = "/placeholder.png";
 
-type Category = {
-  slug: string;
+type Product = {
+  _id: string;
   name: string;
-  image?: string;
-  description?: string;
+  description: string;
+  images?: string[];
+  rating?: number;
+  numReviews?: number;
+  variants?: { label: string; price: number }[];
 };
 
-export default function ProductPage() {
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [products, setProducts] = useState([]);
-  const router = useRouter();
+const ProductGrid = () => {
+  const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      try {
-        const [catRes, prodRes] = await Promise.all([
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_CATEGORY_API}`),
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_PRODUCTS_API}`),
-        ]);
-
-        setCategories(catRes.data);
-        setProducts(prodRes.data);
-      } catch (error) {
-        console.error("Failed to fetch data", error);
-      }
+      const res = await fetch("http://localhost:3000/product/category/spices");
+      const data = await res.json();
+      setProducts(data);
     };
 
     fetchData();
   }, []);
 
-  const handleBuyNow = (product: any) => {
+  const handleBuyNow = (product: {
+    _id?: string;
+    name: any;
+    description?: string;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    numReviews?: number | undefined;
+    variants?: { label: string; price: number }[] | undefined;
+  }) => {
     console.log("Buy Now:", product.name);
   };
 
-  const handleAddToWishlist = (product: any) => {
+  const handleAddToWishlist = (product: {
+    _id?: string;
+    name: any;
+    description?: string;
+    images?: string[] | undefined;
+    rating?: number | undefined;
+    numReviews?: number | undefined;
+    variants?: { label: string; price: number }[] | undefined;
+  }) => {
     console.log("Add to Wishlist:", product.name);
   };
 
   return (
     <div className="px-4 md:px-12 py-6 bg-gray-50 min-h-screen">
-      {/* Banner */}
-      <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden bg-gray-200 mb-6 flex items-center justify-center text-gray-500 text-xl font-medium">
-        <img
-          src="/banners/all_products.jpg"
-          alt="All Products Banner"
-          className="object-cover w-full h-full"
-        />
-      </div>
+      <h2 className="text-3xl font-bold mb-6 text-center text-green-900">
+        Your Favorites | All in One Place
+      </h2>
 
-      {/* Categories */}
-      <div className="flex gap-6 justify-center overflow-x-auto pb-4 px-4 md:px-12 scroll-snap-x">
-        {categories.map((cat, i) => (
-          <div
-            key={i}
-            className="flex flex-col items-center scroll-snap-start w-24 shrink-0 cursor-pointer"
-            onClick={() =>
-              router.push(`/category/${encodeURIComponent(cat.slug)}`)
-            }
-          >
-            <div className="w-20 h-20 rounded-lg overflow-hidden border-2 border-orange-400 hover:border-orange-500 transition duration-200">
-              <Image
-                src={cat.image || placeholderImage}
-                alt={cat.name}
-                width={80}
-                height={80}
-                className="object-cover w-full h-full"
-              />
-            </div>
-            <span className="mt-1 text-center text-sm">{cat.name}</span>
-          </div>
-        ))}
-      </div>
-
-      {/* Product Grid */}
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-8 mt-6">
-        {products.map((product: any) => {
-          const firstVariant = product.variants?.[0];
-          const price = firstVariant?.price;
-          const originalPrice = firstVariant?.originalPrice || price + 300;
+        {products.map((product) => {
+          const price = product.variants?.[0]?.price ?? 0;
+          const originalPrice = price + 300;
 
           return (
-            <div
+            <Card
               key={product._id}
               className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
-              onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
               <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
@@ -110,30 +84,34 @@ export default function ProductPage() {
               </div>
 
               {/* Product Info */}
-              <div className="p-4 flex-1 flex flex-col justify-between">
+              <CardContent className="p-4 flex-1 flex flex-col justify-between">
                 <div>
+                  <p className="text-sm text-gray-400">1 Kg</p>
                   <h3 className="text-lg font-semibold text-gray-800 truncate">
                     {product.name}
                   </h3>
                   <p className="text-sm text-gray-500 mt-1 truncate">
                     {product.description}
                   </p>
+
+                  <div className="flex items-center mt-1 text-yellow-500 text-sm">
+                    <Star className="w-4 h-4 fill-yellow-500 mr-1" />
+                    {product.rating} ({product.numReviews} reviews)
+                  </div>
                 </div>
 
-                {/* Price */}
                 <div className="mt-2">
                   <p className="text-lg font-bold text-gray-800">
-                    ₹{price?.toLocaleString("en-IN") ?? "N/A"}{" "}
+                    ₹{price?.toLocaleString("en-IN") ?? "N/A"}
                     <span className="text-sm font-medium text-gray-400 line-through ml-1">
-                      ₹{originalPrice?.toLocaleString("en-IN")}
+                      ₹{originalPrice.toLocaleString("en-IN")}
                     </span>
                   </p>
-                  <p className="text-sm text-emerald-600 font-medium">
+                  <p className="text-sm text-green-600 font-medium">
                     Save ₹{(originalPrice - price).toLocaleString("en-IN")}
                   </p>
                 </div>
 
-                {/* Action Buttons Row */}
                 <div className="mt-4 flex justify-between items-center gap-2">
                   <Button
                     size="sm"
@@ -146,7 +124,7 @@ export default function ProductPage() {
                     ⚡ Buy Now
                   </Button>
 
-                  <div onClick={(e) => e.stopPropagation()}>
+                  <div onClick={(e) => e.stopPropagation()} className="flex-1">
                     <AddToCartButton
                       productId={product._id}
                       variantLabel={product.variants?.[0]?.label}
@@ -165,11 +143,13 @@ export default function ProductPage() {
                     💖
                   </Button>
                 </div>
-              </div>
-            </div>
+              </CardContent>
+            </Card>
           );
         })}
       </div>
     </div>
   );
-}
+};
+
+export default ProductGrid;
