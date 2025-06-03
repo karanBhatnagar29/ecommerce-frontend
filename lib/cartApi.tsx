@@ -6,18 +6,20 @@ import { Button } from "@/components/ui/button";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
-import { ShoppingCart, Check, Loader2 } from "lucide-react"; // icon components
+import { ShoppingCart, Check, Loader2 } from "lucide-react";
 
 interface AddToCartButtonProps {
   productId: string;
   variantLabel?: string;
   quantity?: number;
+  className?: string; // ✅ allow custom styles
 }
 
 export default function AddToCartButton({
   productId,
   variantLabel,
   quantity = 1,
+  className = "", // ✅ default to empty
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
@@ -28,8 +30,7 @@ export default function AddToCartButton({
     const token = Cookies.get("token");
 
     if (!token) {
-      alert("Please login to add items to your cart.");
-      router.push("/login");
+      router.push("/auth/login");
       return;
     }
 
@@ -54,7 +55,7 @@ export default function AddToCartButton({
     <Button
       size="sm"
       variant="outline"
-      className="text-orange-600 border-orange-400 hover:bg-orange-50 p-2"
+      className={`text-orange-600 border-orange-400 hover:bg-orange-50 text-xs px-3 ${className}`}
       onClick={handleAddToCart}
       disabled={loading}
       title={success ? "Added to cart" : "Add to cart"}

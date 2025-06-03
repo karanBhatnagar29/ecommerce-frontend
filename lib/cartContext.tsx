@@ -69,9 +69,14 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         headers: { Authorization: `Bearer ${token}` },
       });
       setCart(response.data);
-    } catch (err) {
-      console.error("Cart fetch error:", err);
-      setCart({ items: [] }); // fallback
+    } catch (err: any) {
+      // ✅ Gracefully handle 401
+      if (err.response && err.response.status === 401) {
+        Cookies.remove("token"); // Optional: clear token
+        setCart({ items: [] }); // Clear cart
+      } else {
+        console.error("Cart fetch error:", err);
+      }
     }
   };
 

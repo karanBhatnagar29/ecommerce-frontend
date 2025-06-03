@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import AddToCartButton from "@/lib/cartApi";
-
+import { useRouter } from "next/navigation";
 const placeholderImage = "/placeholder.png";
 
 type Product = {
@@ -18,6 +18,7 @@ type Product = {
 };
 
 const ProductGrid = () => {
+  const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
@@ -30,27 +31,11 @@ const ProductGrid = () => {
     fetchData();
   }, []);
 
-  const handleBuyNow = (product: {
-    _id?: string;
-    name: any;
-    description?: string;
-    images?: string[] | undefined;
-    rating?: number | undefined;
-    numReviews?: number | undefined;
-    variants?: { label: string; price: number }[] | undefined;
-  }) => {
+  const handleBuyNow = (product: Product) => {
     console.log("Buy Now:", product.name);
   };
 
-  const handleAddToWishlist = (product: {
-    _id?: string;
-    name: any;
-    description?: string;
-    images?: string[] | undefined;
-    rating?: number | undefined;
-    numReviews?: number | undefined;
-    variants?: { label: string; price: number }[] | undefined;
-  }) => {
+  const handleAddToWishlist = (product: Product) => {
     console.log("Add to Wishlist:", product.name);
   };
 
@@ -69,6 +54,7 @@ const ProductGrid = () => {
             <Card
               key={product._id}
               className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+              onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
               <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
@@ -112,7 +98,9 @@ const ProductGrid = () => {
                   </p>
                 </div>
 
+                {/* Buttons Row */}
                 <div className="mt-4 flex justify-between items-center gap-2">
+                  {/* Buy Now */}
                   <Button
                     size="sm"
                     className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 flex-1"
@@ -124,13 +112,15 @@ const ProductGrid = () => {
                     ⚡ Buy Now
                   </Button>
 
-                  <div onClick={(e) => e.stopPropagation()} className="flex-1">
+                  {/* Cart */}
+                  <div onClick={(e) => e.stopPropagation()}>
                     <AddToCartButton
                       productId={product._id}
                       variantLabel={product.variants?.[0]?.label}
                     />
                   </div>
 
+                  {/* Wishlist */}
                   <Button
                     size="sm"
                     variant="outline"
