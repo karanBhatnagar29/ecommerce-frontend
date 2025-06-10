@@ -24,10 +24,13 @@ export default function OtpLoginForm() {
 
   const handleVerifyOtp = async () => {
     try {
-      const res = await axios.post("http://localhost:3000/auth/verify-otp", {
-        phone,
-        otp,
-      });
+      const res = await axios.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-otp`,
+        {
+          phone,
+          otp,
+        }
+      );
 
       const { token, isProfileComplete } = res.data;
 

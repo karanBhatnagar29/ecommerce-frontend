@@ -65,9 +65,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const response = await axios.get("http://localhost:3000/cart", {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      const response = await axios.get(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
       setCart(response.data);
     } catch (err: any) {
       // ✅ Gracefully handle 401
@@ -101,7 +104,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     try {
-      await axios.delete(`http://localhost:3000/cart/${itemId}`, {
+      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -122,7 +125,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
 
     try {
       await axios.post(
-        "http://localhost:3000/cart",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
         { productId, variantLabel, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
       );
