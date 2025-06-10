@@ -12,7 +12,9 @@ export default function OtpLoginForm() {
 
   const handleRequestOtp = async () => {
     try {
-      await axios.post("http://localhost:3000/auth/request-otp", { phone });
+      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/request-otp`, {
+        phone,
+      });
       setStep(2);
       alert("OTP sent! Check console (dev only)");
     } catch (err) {

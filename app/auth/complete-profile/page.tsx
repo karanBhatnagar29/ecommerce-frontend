@@ -34,7 +34,7 @@ export default function CompleteProfile() {
     setError("");
     try {
       await axiosInstance.put(
-        "http://localhost:3000/auth/complete-profile",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/complete-profile`,
         form,
         {
           headers: { Authorization: `Bearer ${token}` },

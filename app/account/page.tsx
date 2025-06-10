@@ -37,15 +37,18 @@ export default function AccountPage() {
         const token = Cookies.get("token");
         if (!token) throw new Error("Not authenticated");
 
-        const res = await axios.get(`http://localhost:3000/user/profile`, {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        });
+        const res = await axios.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/user/profile`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
         setUser(res.data);
 
         const ordersRes = await axios.get(
-          `http://localhost:3000/order/user/${res.data._id}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/order/user/${res.data._id}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,

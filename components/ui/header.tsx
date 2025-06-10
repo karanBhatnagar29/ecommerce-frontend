@@ -28,7 +28,9 @@ const Header = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch("http://localhost:3000/categories");
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/categories`
+        );
         const data = await res.json();
         setCategories(data);
       } catch (error) {

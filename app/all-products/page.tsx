@@ -26,8 +26,8 @@ export default function ProductPage() {
     const fetchData = async () => {
       try {
         const [catRes, prodRes] = await Promise.all([
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_CATEGORY_API}`),
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_PRODUCTS_API}`),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/categories`),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/product`),
         ]);
 
         setCategories(catRes.data);

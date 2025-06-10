@@ -155,7 +155,7 @@ const Footer = () => {
 
       {/* Copyright */}
       <div className="text-center text-sm text-white mt-12 z-10 relative">
-        Copyright © 2025, Anveshan Farm Technologies Pvt. Ltd.
+        Copyright © 2025, Zesty Crops Pvt. Ltd.
       </div>
     </footer>
   );

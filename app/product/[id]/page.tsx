@@ -19,7 +19,7 @@ export default function ProductPage() {
     async function fetchProduct() {
       try {
         const res = await axios.get(
-          `${process.env.NEXT_PUBLIC_PRODUCTS_API}/${id}`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/product/${id}`
         );
         setProduct(res.data);
         setSelectedVariant(res.data.variants[0]);

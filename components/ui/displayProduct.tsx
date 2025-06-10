@@ -23,7 +23,9 @@ const ProductGrid = () => {
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch("http://localhost:3000/product/category/spices");
+      const res = await fetch(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/spices`
+      );
       const data = await res.json();
       setProducts(data);
     };

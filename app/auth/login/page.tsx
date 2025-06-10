@@ -1,13 +1,12 @@
 "use client";
 
 import { useState } from "react";
-import axios from "axios";
+import axiosInstance from "@/lib/axiosInstance";
 import Cookies from "js-cookie";
 import { X } from "lucide-react";
-import axiosInstance from "@/lib/axiosInstance";
 
 export default function LoginPage() {
-  const [phone, setPhone] = useState("");
+  const [email, setEmail] = useState("");
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
@@ -15,11 +14,14 @@ export default function LoginPage() {
   const handleRequestOtp = async () => {
     setLoading(true);
     try {
-      await axiosInstance.post("http://localhost:3000/auth/request-otp", {
-        phone,
-      });
+      await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/request-otp`,
+        {
+          email,
+        }
+      );
       setStep(2);
-      alert("OTP sent! Check your terminal (for local dev)");
+      alert("OTP sent to your email!");
     } catch (err) {
       alert("Failed to send OTP");
     } finally {
@@ -31,9 +33,9 @@ export default function LoginPage() {
     setLoading(true);
     try {
       const res = await axiosInstance.post(
-        "http://localhost:3000/auth/verify-otp",
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-otp`,
         {
-          phone,
+          email,
           otp,
         }
       );
@@ -61,7 +63,7 @@ export default function LoginPage() {
         {/* Banner Image */}
         <div className="relative">
           <img
-            src="/cow.jpg" // Place this image in your public folder
+            src="/category-banner/ghee.jpg"
             alt="Cow"
             className="w-full h-48 object-cover"
           />
@@ -73,37 +75,25 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Form */}
+        {/* Form Section */}
         <div className="bg-white px-6 py-8">
           <h2 className="text-xl font-semibold mb-6">Sign In</h2>
 
           {step === 1 ? (
             <>
-              {/* Phone Input with Flag */}
-              <div className="flex items-center border rounded-md overflow-hidden mb-4">
-                <div className="flex items-center gap-2 px-3 bg-gray-100 text-gray-700">
-                  <img
-                    src="/india-flag.svg" // Indian flag image in public folder
-                    alt="IN"
-                    className="h-4 w-5 object-contain"
-                  />
-                  <span>+91</span>
-                </div>
-                <input
-                  type="text"
-                  value={phone}
-                  onChange={(e) => setPhone(e.target.value)}
-                  placeholder="10-digit mobile number"
-                  className="w-full px-3 py-2 outline-none"
-                />
-              </div>
-
+              <input
+                type="email"
+                value={email}
+                onChange={(e) => setEmail(e.target.value)}
+                placeholder="Enter your email address"
+                className="w-full px-4 py-2 border rounded-md mb-4"
+              />
               <button
                 onClick={handleRequestOtp}
                 disabled={loading}
                 className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md transition"
               >
-                {loading ? "Sending..." : "Login"}
+                {loading ? "Sending..." : "Send OTP"}
               </button>
             </>
           ) : (
