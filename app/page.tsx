@@ -4,6 +4,8 @@ import { useEffect, useState } from "react";
 import HeroCarousel from "@/components/hero/heroCarosuel";
 import Promise from "@/components/promise";
 import ProductGrid from "@/components/ui/displayProduct";
+import { FaWhatsapp } from "react-icons/fa";
+import WhatsappButton from "@/components/ui/whatsappButton";
 
 const heroImages = [
   "/hero1.jpg", // Replace with your actual image URLs
@@ -26,9 +28,10 @@ export default function Home() {
     <div className="min-h-screen bg-white">
       {/* Hero Section */}
       <HeroCarousel />
-
       <ProductGrid />
       <Promise />
+      {/* Floating WhatsApp Button */}
+      <WhatsappButton />
     </div>
   );
 }

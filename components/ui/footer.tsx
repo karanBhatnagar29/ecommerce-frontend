@@ -8,15 +8,15 @@ const Footer = () => {
         <div className="space-y-4">
           <h2 className="text-3xl font-bold text-white">Zesty Crops®</h2>
           <p>
-            <strong>Corporate Office</strong> - Sector 44, Gurugram
+            <strong>Office</strong> - Jodhpur
           </p>
-          <p>
+          {/* <p>
             <strong>Registered Office</strong> - IMT Manesar, Gurugram
-          </p>
+          </p> */}
           <p>
             Grievance Redressal Officer:{" "}
             <a href="#" className="underline text-blue-200 hover:text-white">
-              Suyash Gupta
+              Zesty Crops
             </a>
           </p>
 
