@@ -1,3 +1,5 @@
+"use client";
+
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
@@ -5,6 +7,7 @@ import { Star } from "lucide-react";
 import Image from "next/image";
 import AddToCartButton from "@/lib/cartApi";
 import { useRouter } from "next/navigation";
+
 const placeholderImage = "/placeholder.png";
 
 type Product = {
@@ -34,7 +37,14 @@ const ProductGrid = () => {
   }, []);
 
   const handleBuyNow = (product: Product) => {
-    console.log("Buy Now:", product.name);
+    const selectedVariantLabel = product.variants?.[0]?.label || "";
+
+    // Store product info in sessionStorage
+    sessionStorage.setItem("productId", product._id);
+    sessionStorage.setItem("variantLabel", selectedVariantLabel);
+
+    // Navigate to checkout
+    router.push("/checkout");
   };
 
   const handleAddToWishlist = (product: Product) => {
@@ -88,6 +98,7 @@ const ProductGrid = () => {
                   </div>
                 </div>
 
+                {/* Pricing */}
                 <div className="mt-2">
                   <p className="text-lg font-bold text-gray-800">
                     ₹{price?.toLocaleString("en-IN") ?? "N/A"}
@@ -109,7 +120,6 @@ const ProductGrid = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleBuyNow(product);
-                      router.push(`/product/${product._id}`)
                     }}
                   >
                     ⚡ Buy Now

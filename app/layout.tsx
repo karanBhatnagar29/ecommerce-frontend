@@ -5,6 +5,7 @@ import AnnouncementBar from "@/components/ui/announcement-bar";
 import Header from "@/components/ui/header";
 import Footer from "@/components/ui/footer";
 import { CartProvider } from "@/lib/cartContext";
+import WhatsappButton from "@/components/ui/whatsappButton";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -37,6 +38,7 @@ export default function RootLayout({
             <Header />
             <main className="flex-1">{children}</main>
             <Footer />
+            <WhatsappButton />
           </div>
         </CartProvider>
       </body>
