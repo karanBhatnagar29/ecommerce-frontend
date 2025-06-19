@@ -17,11 +17,50 @@ interface User {
   address: string;
 }
 
+interface Variant {
+  label: string;
+  price: number;
+}
+
+interface Product {
+  _id: string;
+  name: string;
+  brand: string;
+  images: string[];
+  variants: Variant[];
+}
+
+interface OrderProduct {
+  productId: Product;
+  quantity: number;
+  variantLabel?: string;
+}
+
+interface PaymentInfo {
+  paymentMethod: string;
+  transactionId: string;
+  isPaid: boolean;
+}
+
+interface ShippingInfo {
+  shippingAddress: string;
+  phone: string;
+  city: string;
+  state: string;
+  pincode: string;
+  deliveryInstructions?: string;
+}
+
 interface Order {
   _id: string;
+  products: OrderProduct[];
   totalPrice: number;
   status: string;
   createdAt: string;
+  shippingInfo: ShippingInfo;
+  paymentInfo: PaymentInfo;
+  couponCode?: string;
+  orderNotes?: string;
 }
 
 export default function AccountPage() {
@@ -35,7 +74,6 @@ export default function AccountPage() {
     const fetchProfileAndOrders = async () => {
       try {
         const token = Cookies.get("token");
-        if (!token) throw new Error("Not authenticated");
 
         const res = await axios.get(
           `${process.env.NEXT_PUBLIC_BASE_URL}/user/profile`,
@@ -56,6 +94,7 @@ export default function AccountPage() {
           }
         );
         setOrders(ordersRes.data);
+        console.log(res.data._id);
       } catch (err) {
         console.error("Error fetching data", err);
       } finally {
@@ -97,7 +136,6 @@ export default function AccountPage() {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
-          {/* Sidebar */}
           <div className="w-full md:w-1/4 space-y-4">
             <div
               onClick={() => setActiveTab("profile")}
@@ -121,7 +159,6 @@ export default function AccountPage() {
             </div>
           </div>
 
-          {/* Content */}
           <div className="w-full md:w-3/4">
             {activeTab === "profile" && (
               <div className="space-y-8">
@@ -184,27 +221,49 @@ export default function AccountPage() {
                         className="p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
                       >
                         <p className="text-sm text-gray-500">
-                          Order ID:{" "}
-                          <span className="font-medium text-gray-700">
-                            {order._id}
-                          </span>
+                          <strong>Order ID:</strong> {order._id}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Status:{" "}
-                          <span className="font-medium text-blue-600">
-                            {order.status}
-                          </span>
+                          <strong>Status:</strong> {order.status}
                         </p>
                         <p className="text-sm text-gray-500">
-                          Total Price:{" "}
-                          <span className="font-medium">
-                            ₹{order.totalPrice}
-                          </span>
+                          <strong>Placed on:</strong> {new Date(order.createdAt).toLocaleDateString()}
                         </p>
-                        <p className="text-sm text-gray-500">
-                          Placed on:{" "}
-                          {new Date(order.createdAt).toLocaleDateString()}
-                        </p>
+
+                        <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          {order.products.map((item, idx) => {
+                            const product = item.productId;
+                            const variant = product.variants.find(v => v.label === item.variantLabel);
+                            return (
+                              <div key={idx} className="flex gap-4 border p-3 rounded-lg bg-white">
+                                <img
+                                  src={product.images[0]}
+                                  alt={product.name}
+                                  className="w-20 h-20 object-cover rounded"
+                                />
+                                <div>
+                                  <h3 className="font-semibold text-gray-800">{product.name}</h3>
+                                  <p className="text-sm text-gray-500">Brand: {product.brand}</p>
+                                  <p className="text-sm text-gray-500">Variant: {item.variantLabel}</p>
+                                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                  <p className="text-sm text-gray-700 font-medium">
+                                    ₹{variant?.price} x {item.quantity} = ₹{variant?.price ? variant.price * item.quantity : 0}
+                                  </p>
+                                </div>
+                              </div>
+                            );
+                          })}
+                        </div>
+
+                        <div className="mt-4 text-right font-bold text-gray-800">
+                          Total: ₹{order.totalPrice}
+                        </div>
+                        <div className="text-sm text-gray-600 mt-2">
+                          <p><strong>Payment:</strong> {order.paymentInfo.paymentMethod} ({order.paymentInfo.isPaid ? "Paid" : "Unpaid"})</p>
+                          <p><strong>Shipping Address:</strong> {order.shippingInfo.shippingAddress}, {order.shippingInfo.city}, {order.shippingInfo.state} - {order.shippingInfo.pincode}</p>
+                          {order.couponCode && <p><strong>Coupon Applied:</strong> {order.couponCode}</p>}
+                          {order.orderNotes && <p><strong>Note:</strong> {order.orderNotes}</p>}
+                        </div>
                       </li>
                     ))}
                   </ul>

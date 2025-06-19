@@ -4,9 +4,8 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from "next/navigation";
-import axios from "axios";
-import AddToCartButton from "@/lib/cartApi";
 import axiosInstance from "@/lib/axiosInstance";
+import AddToCartButton from "@/lib/cartApi";
 
 const placeholderImage = "/placeholder.png";
 
@@ -20,23 +19,30 @@ type Category = {
 export default function CategorySlugPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState([]);
+  const [allProducts, setAllProducts] = useState([]);
   const router = useRouter();
   const params = useParams();
-
   const slug = decodeURIComponent(params?.slug as string);
 
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catRes, prodRes] = await Promise.all([
+        const [catRes, prodRes, allProdRes] = await Promise.all([
           axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/categories`),
           axiosInstance.get(
             `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/${slug}`
           ),
+          axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/product`),
         ]);
 
         setCategories(catRes.data);
         setProducts(prodRes.data);
+        setAllProducts(allProdRes.data);
+
+        const firstProductId = allProdRes.data?.[0]?._id;
+        if (firstProductId) {
+          sessionStorage.setItem("productId", firstProductId);
+        }
       } catch (error) {
         console.error("Failed to fetch data", error);
       }
@@ -46,13 +52,16 @@ export default function CategorySlugPage() {
   }, [slug]);
 
   const handleBuyNow = (product: any) => {
-    console.log("Buy Now:", product.name);
-    // Redirect to checkout or product detail page if needed
+    const selectedVariantLabel = product.variants?.[0]?.label || "";
+
+    sessionStorage.setItem("productId", product._id);
+    sessionStorage.setItem("variantLabel", selectedVariantLabel);
+
+    router.push("/checkout");
   };
 
   const handleAddToWishlist = (product: any) => {
     console.log("Add to Wishlist:", product.name);
-    // Implement wishlist logic here
   };
 
   return (
@@ -63,11 +72,10 @@ export default function CategorySlugPage() {
           src={`/category-banner/${slug}.jpg`}
           alt={`${slug} banner`}
           className="object-cover w-full h-full"
-          onError={
-            (e) =>
-              ((e.target as HTMLImageElement).src =
-                "/category-banner/default_category.jpg") // ✅ correct path
-          }
+          onError={(e) => {
+            (e.target as HTMLImageElement).src =
+              "/category-banner/default_category.jpg";
+          }}
         />
       </div>
 
@@ -147,7 +155,6 @@ export default function CategorySlugPage() {
 
                 {/* Action Buttons */}
                 <div className="mt-4 flex justify-between items-center gap-2">
-                  {/* Buy Now */}
                   <Button
                     size="sm"
                     className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 flex-1"
@@ -159,7 +166,6 @@ export default function CategorySlugPage() {
                     ⚡ Buy Now
                   </Button>
 
-                  {/* Cart */}
                   <div onClick={(e) => e.stopPropagation()}>
                     <AddToCartButton
                       productId={product._id}
@@ -167,7 +173,6 @@ export default function CategorySlugPage() {
                     />
                   </div>
 
-                  {/* Wishlist */}
                   <Button
                     size="sm"
                     variant="outline"

@@ -40,8 +40,10 @@ export default function LoginPage() {
         }
       );
 
-      const { token, isProfileComplete } = res.data;
+      const { token, isProfileComplete, user } = res.data;
       Cookies.set("token", token, { expires: 7 });
+      console.log(res.data);
+      sessionStorage.setItem("userID", user._id);
 
       if (isProfileComplete) {
         alert("Login successful!");

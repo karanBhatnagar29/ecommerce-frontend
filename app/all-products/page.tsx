@@ -41,7 +41,12 @@ export default function ProductPage() {
   }, []);
 
   const handleBuyNow = (product: any) => {
-    console.log("Buy Now:", product.name);
+    const selectedVariantLabel = product.variants?.[0]?.label || "";
+
+    sessionStorage.setItem("productId", product._id);
+    sessionStorage.setItem("variantLabel", selectedVariantLabel);
+
+    router.push("/checkout");
   };
 
   const handleAddToWishlist = (product: any) => {

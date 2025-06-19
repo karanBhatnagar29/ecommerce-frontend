@@ -6,12 +6,14 @@ import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
 import axios from "axios";
 import { Star } from "lucide-react";
+import { useRouter } from "next/navigation";
 
 export default function ProductPage() {
   const { id } = useParams(); // Get the dynamic product ID from the URL
   const [product, setProduct] = useState<any>(null);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const router = useRouter();
 
   useEffect(() => {
     if (!id) return;
@@ -119,8 +121,11 @@ export default function ProductPage() {
         <button
           className="w-full bg-green-700 text-white py-3 rounded-md text-lg hover:bg-green-800 transition"
           disabled={selectedVariant?.stock === 0}
+          onClick={() => {
+            router.push(`/product/${product._id}`);
+          }}
         >
-          Add to Cart
+          Buy Now
         </button>
       </div>
     </div>

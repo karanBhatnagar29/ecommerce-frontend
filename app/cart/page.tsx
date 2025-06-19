@@ -1,11 +1,14 @@
 "use client";
 
-import React from "react";
+import React, { useState } from "react";
 import Image from "next/image";
+import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
 
 export default function CartPage() {
   const { cartItems, removeItem } = useCart();
+  const [loading, setLoading] = useState(false);
+  const router = useRouter();
 
   const handleRemove = async (itemId: string) => {
     try {
@@ -13,6 +16,11 @@ export default function CartPage() {
     } catch (error) {
       console.error("Error removing item from cart:", error);
     }
+  };
+
+  const handleCheckout = () => {
+    sessionStorage.setItem("cart", JSON.stringify(cartItems));
+    router.push("/checkout"); // Your CheckoutModal is already set to auto-open via `useEffect`
   };
 
   if (!cartItems || cartItems.length === 0) {
@@ -35,7 +43,9 @@ export default function CartPage() {
               className="flex items-center gap-4 border rounded-lg p-4 shadow-sm bg-white relative"
             >
               <Image
-                src={item.image || item.productId.images[0]}
+                src={
+                  item.image || item.productId.images?.[0] || "/placeholder.png"
+                }
                 alt={item.productId.name}
                 width={80}
                 height={80}
@@ -70,16 +80,19 @@ export default function CartPage() {
             <span>Items ({cartItems.length})</span>
             <span>₹{total}</span>
           </div>
-          <div className="flex justify-between">
+          {/* <div className="flex justify-between">
             <span>Shipping</span>
             <span>₹{shippingCost}</span>
-          </div>
+          </div> */}
           <div className="flex justify-between font-semibold text-lg pt-2 border-t mt-4">
             <span>Total</span>
-            <span>₹{finalTotal}</span>
+            <span>₹{total}</span>
           </div>
         </div>
-        <button className="mt-6 w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 rounded-md transition">
+        <button
+          onClick={handleCheckout}
+          className="mt-6 w-full bg-violet-600 hover:bg-violet-700 text-white font-semibold py-2 rounded-md transition"
+        >
           Checkout
         </button>
       </div>

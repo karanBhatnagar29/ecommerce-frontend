@@ -1,100 +1,384 @@
 "use client";
+
 import { useState, useEffect } from "react";
-import axios from "axios";
-import { useRouter } from "next/navigation";
-import { Input } from "@/components/ui/input";
+import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import axios from "axios";
+import Cookies from "js-cookie";
+import { useRouter } from "next/navigation";
 
-type Product = {
-  productName: string;
-  variantLabel: string;
-  quantity: number;
-  // Add other fields if needed
-};
-
-const CheckoutPage = () => {
+export default function CheckoutModal() {
+  const [isOpen, setIsOpen] = useState(true);
+  const [couponCode, setCouponCode] = useState("SUMMER2025");
+  const [orderNotes, setOrderNotes] = useState("Gift wrap this order, please");
+  const token = Cookies.get("token");
   const router = useRouter();
-  const [products, setProducts] = useState<Product[]>([]);
-  const [shippingDetails, setShippingDetails] = useState({
-    address: "",
+
+  const [shipping, setShipping] = useState({
+    shippingAddress: "",
     phone: "",
+    alternatePhone: "",
+    city: "",
+    state: "",
+    pincode: "",
+    deliveryInstructions: "",
   });
-  const [loading, setLoading] = useState(false);
 
-  useEffect(() => {
-    // In a real app, you'd fetch this from localStorage/context or router query (for buy now)
-    const cartData = JSON.parse(localStorage.getItem("checkoutItems") || "[]");
-    setProducts(cartData);
-  }, []);
+  const [product, setProduct] = useState<Product | null>(null);
+  const [productId, setProductId] = useState<string | null>(null);
+  const [userId, setUserId] = useState<string | null>(null);
+  const [variantLabel, setVariantLabel] = useState<string>("");
+  const [quantity, setQuantity] = useState<number>(1);
+  const [qrUrl, setQrUrl] = useState<string | null>(null);
+  const [paymentIntentId, setPaymentIntentId] = useState<string | null>(null);
+  const [cartItems, setCartItems] = useState<any[]>([]);
 
-  const handleChange = (e: { target: { name: any; value: any } }) => {
-    setShippingDetails({
-      ...shippingDetails,
-      [e.target.name]: e.target.value,
-    });
+  type Variant = {
+    label: string;
+    price: number;
+    originalPrice?: number;
   };
 
-  const handleSubmit = async () => {
-    try {
-      setLoading(true);
-      const userId = localStorage.getItem("userId"); // or get from auth context
-      const payload = {
-        userId,
-        products,
-        shippingDetails,
-      };
+  type Product = {
+    name: string;
+    images?: string[];
+    variants: Variant[];
+    description?: string;
+    brand?: string;
+    category?: string;
+    rating?: number;
+  };
 
-      const response = await axios.post(
-        "http://51.20.166.225:3001/order",
-        payload
+  useEffect(() => {
+    const pid = sessionStorage.getItem("productId");
+    const uid = sessionStorage.getItem("userID");
+    const vlabel = sessionStorage.getItem("variantLabel");
+    const cart = sessionStorage.getItem("cart");
+
+    if (cart) setCartItems(JSON.parse(cart));
+    if (pid) setProductId(pid.trim());
+    if (uid) setUserId(uid.trim());
+    if (vlabel) setVariantLabel(vlabel.trim());
+  }, []);
+
+  useEffect(() => {
+    if (!productId || cartItems.length > 0) return;
+
+    const fetchProduct = async () => {
+      try {
+        const res = await axios.get(
+          `http://51.20.166.225:3000/product/${productId}`,
+          {
+            headers: {
+              Authorization: `Bearer ${token}`,
+            },
+          }
+        );
+        setProduct(res.data);
+      } catch (error) {
+        console.error("Failed to fetch product:", error);
+      }
+    };
+
+    fetchProduct();
+  }, [productId, cartItems.length]);
+
+  const handleInitiatePayment = async () => {
+    if (!userId) {
+      alert("Missing user ID");
+      return;
+    }
+
+    const payload = {
+      userId,
+      products:
+        cartItems.length > 0
+          ? cartItems.map((item) => ({
+              productId: item.productId._id,
+              quantity: item.quantity,
+              variantLabel: item.variantLabel,
+            }))
+          : [
+              {
+                productId,
+                quantity,
+                variantLabel,
+              },
+            ],
+      shippingInfo: shipping,
+      couponCode,
+      orderNotes,
+    };
+
+    try {
+      const res = await axios.post(
+        "http://51.20.166.225:3000/order/initiate-payment",
+        payload,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+        }
       );
-      alert("Order placed successfully!");
-      router.push("/thank-you");
-    } catch (err) {
-      alert("Error placing order");
-    } finally {
-      setLoading(false);
+
+      setQrUrl(res.data.qrUrl);
+      setPaymentIntentId(res.data.paymentIntentId);
+    } catch (error) {
+      console.error("Payment init error:", error);
+      alert("Failed to initiate payment");
     }
   };
 
-  return (
-    <div className="max-w-2xl mx-auto p-4 space-y-4">
-      <h1 className="text-2xl font-bold">Checkout</h1>
-      <div className="space-y-2">
-        {products.map((item, idx) => (
-          <div key={idx} className="border p-2 rounded">
-            <p>
-              <strong>Product:</strong> {item.productName}
-            </p>
-            <p>
-              <strong>Variant:</strong> {item.variantLabel}
-            </p>
-            <p>
-              <strong>Quantity:</strong> {item.quantity}
-            </p>
-          </div>
-        ))}
-      </div>
+  const handleConfirmPayment = async () => {
+    if (!paymentIntentId) return;
 
-      <div className="space-y-2">
-        <Input
-          name="address"
-          placeholder="Shipping Address"
-          value={shippingDetails.address}
-          onChange={handleChange}
-        />
-        <Input
-          name="phone"
-          placeholder="Phone Number"
-          value={shippingDetails.phone}
-          onChange={handleChange}
-        />
-        <Button onClick={handleSubmit} disabled={loading}>
-          {loading ? "Placing Order..." : "Place Order"}
-        </Button>
+    const payload = {
+      userId,
+      products:
+        cartItems.length > 0
+          ? cartItems.map((item) => ({
+              productId: item.productId._id,
+              quantity: item.quantity,
+              variantLabel: item.variantLabel,
+            }))
+          : [
+              {
+                productId,
+                quantity,
+                variantLabel,
+              },
+            ],
+      shippingInfo: shipping,
+      paymentInfo: {
+        paymentMethod: "UPI",
+        transactionId: "UPI_TXN_123456",
+        isPaid: true,
+      },
+      couponCode,
+      orderNotes,
+    };
+
+    try {
+      const res = await axios.post(
+        `http://51.20.166.225:3000/order/confirm/${paymentIntentId}`,
+        {
+          headers: {
+            "Content-Type": "application/json",
+            Authorization: `Bearer ${token}`,
+          },
+          payload,
+        }
+      );
+
+      alert("Order placed successfully!");
+      sessionStorage.removeItem("cart");
+      sessionStorage.removeItem("productId");
+      setIsOpen(false);
+    } catch (error) {
+      console.error("Order confirm error:", error);
+      alert("Failed to confirm order");
+    }
+  };
+
+  const selectedVariant = product?.variants.find(
+    (v) => v.label === variantLabel
+  );
+  const subtotal = selectedVariant ? selectedVariant.price * quantity : 0;
+  const cartTotal = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+
+  return isOpen ? (
+    <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center p-4 z-50">
+      <div className="bg-white rounded-lg max-w-md w-full max-h-screen overflow-y-auto">
+        <div className="bg-gradient-to-br from-red-500 to-orange-500 text-white p-4 rounded-t-lg flex justify-between items-center">
+          <div className="flex items-center gap-2">
+            <ArrowLeft
+              onClick={() => {
+                setIsOpen(false);
+                sessionStorage.removeItem("productId");
+                router.back();
+              }}
+              className="w-5 h-5 cursor-pointer"
+            />
+            <div className="text-white font-bold text-lg">Zesty Crops</div>
+          </div>
+          <X
+            className="w-5 h-5 cursor-pointer"
+            onClick={() => {
+              setIsOpen(false);
+              router.back();
+            }}
+          />
+        </div>
+
+        <div className="p-4 space-y-4">
+          {cartItems.length > 0 ? (
+            cartItems.map((item, index) => (
+              <div
+                key={index}
+                className="flex items-start gap-4 border rounded-md p-3"
+              >
+                <img
+                  src={
+                    item.image || item.productId.images[0] || "/placeholder.png"
+                  }
+                  alt={item.productId.name}
+                  className="w-20 h-20 object-cover rounded-md border"
+                />
+                <div className="flex-1 space-y-1">
+                  <div className="font-medium text-sm text-gray-800">
+                    {item.productId.name}{" "}
+                    <span className="text-gray-500">({item.variantLabel})</span>{" "}
+                    x {item.quantity}
+                  </div>
+                  <div className="font-bold text-lg">₹{item.subtotal}</div>
+                </div>
+              </div>
+            ))
+          ) : product ? (
+            <div className="flex items-start gap-4 border rounded-md p-3">
+              <img
+                src={product.images?.[0] || "/placeholder.png"}
+                alt={product.name}
+                className="w-20 h-20 object-cover rounded-md border"
+              />
+              <div className="flex-1 space-y-1">
+                <div className="font-medium text-sm text-gray-800">
+                  {product.name}{" "}
+                  <span className="text-gray-500">({variantLabel})</span> x{" "}
+                  {quantity}
+                </div>
+                <div className="text-xs text-gray-500">
+                  {product.description}
+                </div>
+                <div className="text-gray-500 line-through text-xs">
+                  ₹{selectedVariant?.originalPrice || ""}
+                </div>
+                <div className="font-bold text-lg">₹{subtotal.toFixed(2)}</div>
+              </div>
+            </div>
+          ) : (
+            <p>Loading product details...</p>
+          )}
+          <div className="text-lg font-semibold text-gray-800 mb-2">
+            Total Amount: ₹
+            {cartItems.length > 0
+              ? cartItems
+                  .reduce((acc, item) => acc + item.subtotal, 0)
+                  .toFixed(2)
+              : (selectedVariant?.price || 0 * quantity).toFixed(2)}
+          </div>
+          {qrUrl ? (
+            <div className="border p-3 rounded text-center">
+              <div className="font-semibold mb-2">Scan this QR to Pay</div>
+              <img src={qrUrl} alt="QR Code" className="w-40 mx-auto" />
+              <Button
+                onClick={handleConfirmPayment}
+                className="mt-4 w-full bg-gradient-to-br from-red-500 to-orange-500 text-white"
+              >
+                I have paid. Confirm Order
+              </Button>
+            </div>
+          ) : (
+            <>
+              <ShippingForm shipping={shipping} setShipping={setShipping} />
+              <InputField
+                label="Order Notes"
+                value={orderNotes}
+                onChange={(v) => setOrderNotes(v)}
+              />
+              {cartItems.length === 0 && (
+                <InputField
+                  label="Quantity"
+                  type="number"
+                  value={quantity.toString()}
+                  onChange={(v) => setQuantity(Number(v))}
+                />
+              )}
+              <Button
+                onClick={handleInitiatePayment}
+                className="w-full bg-gradient-to-br from-red-500 to-orange-500 text-white"
+              >
+                Proceed to Pay
+              </Button>
+            </>
+          )}
+        </div>
       </div>
     </div>
-  );
-};
+  ) : null;
+}
 
-export default CheckoutPage;
+const InputField = ({
+  label,
+  value,
+  onChange,
+  type = "text",
+}: {
+  label: string;
+  value: string;
+  onChange: (val: string) => void;
+  type?: string;
+}) => (
+  <div>
+    <Label className="text-sm font-medium">{label}</Label>
+    <Input
+      type={type}
+      value={value}
+      onChange={(e) => onChange(e.target.value)}
+      placeholder={`Enter ${label.toLowerCase()}`}
+      className="mt-1"
+    />
+  </div>
+);
+
+const ShippingForm = ({
+  shipping,
+  setShipping,
+}: {
+  shipping: any;
+  setShipping: (v: any) => void;
+}) => (
+  <>
+    <h3 className="font-medium mb-4">Shipping Details</h3>
+    <div className="space-y-4">
+      <InputField
+        label="Phone"
+        value={shipping.phone}
+        onChange={(v) => setShipping({ ...shipping, phone: v })}
+      />
+      <InputField
+        label="Alternate Phone"
+        value={shipping.alternatePhone}
+        onChange={(v) => setShipping({ ...shipping, alternatePhone: v })}
+      />
+      <InputField
+        label="Address"
+        value={shipping.shippingAddress}
+        onChange={(v) => setShipping({ ...shipping, shippingAddress: v })}
+      />
+      <InputField
+        label="City"
+        value={shipping.city}
+        onChange={(v) => setShipping({ ...shipping, city: v })}
+      />
+      <InputField
+        label="State"
+        value={shipping.state}
+        onChange={(v) => setShipping({ ...shipping, state: v })}
+      />
+      <InputField
+        label="Pincode"
+        value={shipping.pincode}
+        onChange={(v) => setShipping({ ...shipping, pincode: v })}
+      />
+      <InputField
+        label="Delivery Instructions"
+        value={shipping.deliveryInstructions}
+        onChange={(v) => setShipping({ ...shipping, deliveryInstructions: v })}
+      />
+    </div>
+  </>
+);

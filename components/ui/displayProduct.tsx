@@ -109,6 +109,7 @@ const ProductGrid = () => {
                     onClick={(e) => {
                       e.stopPropagation();
                       handleBuyNow(product);
+                      router.push(`/product/${product._id}`)
                     }}
                   >
                     ⚡ Buy Now

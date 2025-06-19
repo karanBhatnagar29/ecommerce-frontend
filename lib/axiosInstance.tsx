@@ -1,13 +1,15 @@
 // lib/axiosInstance.ts
 import axios from "axios";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
 
-const axiosInstance = axios.create();
+const axiosInstance = axios.create({
+  baseURL: process.env.NEXT_PUBLIC_BASE_URL, // ✅ required
+  withCredentials: true, // ✅ send cookies like session token
+});
 
 axiosInstance.interceptors.response.use(
-  response => response,
-  error => {
+  (response) => response,
+  (error) => {
     if (error.response?.status === 401) {
       Cookies.remove("token");
       if (typeof window !== "undefined") {
