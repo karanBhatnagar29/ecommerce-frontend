@@ -87,8 +87,7 @@ export default function CheckoutModal() {
 
   const handleInitiatePayment = async () => {
     if (!userId) {
-      alert("Missing user ID");
-      return;
+      router.push("/auth/login");
     }
 
     const payload = {

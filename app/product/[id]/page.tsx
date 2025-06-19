@@ -1,5 +1,3 @@
-// app/product/[id]/page.tsx
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -9,7 +7,7 @@ import { Star } from "lucide-react";
 import { useRouter } from "next/navigation";
 
 export default function ProductPage() {
-  const { id } = useParams(); // Get the dynamic product ID from the URL
+  const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
   const [loading, setLoading] = useState(true);
@@ -35,13 +33,18 @@ export default function ProductPage() {
     fetchProduct();
   }, [id]);
 
-  if (loading) {
-    return <div className="p-8 text-center">Loading...</div>;
-  }
+  const handleBuyNow = () => {
+    if (!product || !selectedVariant) return;
 
-  if (!product) {
+    sessionStorage.setItem("productId", product._id);
+    sessionStorage.setItem("variantLabel", selectedVariant.label);
+
+    router.push("/checkout");
+  };
+
+  if (loading) return <div className="p-8 text-center">Loading...</div>;
+  if (!product)
     return <div className="p-8 text-center">Product not found.</div>;
-  }
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10 grid grid-cols-1 md:grid-cols-2 gap-10">
@@ -118,14 +121,13 @@ export default function ProductPage() {
           )}
         </div>
 
+        {/* Buy Now Button */}
         <button
           className="w-full bg-green-700 text-white py-3 rounded-md text-lg hover:bg-green-800 transition"
           disabled={selectedVariant?.stock === 0}
-          onClick={() => {
-            router.push(`/product/${product._id}`);
-          }}
+          onClick={handleBuyNow}
         >
-          Buy Now
+          ⚡ Buy Now
         </button>
       </div>
     </div>

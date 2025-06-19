@@ -54,6 +54,7 @@ export default function LoginPage() {
       }
     } catch (err) {
       alert("Invalid or expired OTP");
+      window.location.href = "/auth/login";
     } finally {
       setLoading(false);
     }
