@@ -69,7 +69,7 @@ export default function CategorySlugPage() {
       {/* Banner */}
       <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden bg-gray-200 mb-6 flex items-center justify-center text-gray-500 text-xl font-medium">
         <img
-          src={`/category-banner/${slug}.jpg`}
+          src={`/category-banner/${slug}.webp`}
           alt={`${slug} banner`}
           className="object-cover w-full h-full"
           onError={(e) => {

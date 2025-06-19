@@ -8,19 +8,19 @@ import { useRouter } from "next/navigation";
 
 const heroSlides = [
   {
-    image: "/banners/aromatic.jpg",
+    image: "/banners/aromatic.webp",
     title: "Pure Spices Are Not The Problem.",
     subtitle: "Artificial Additives Are.",
     badge: "🆕 NEW ARRIVAL",
   },
   {
-    image: "/banners/collection.jpg",
+    image: "/banners/collection.webp",
     title: "Taste The Richness of Indian Spices",
     subtitle: "Sourced directly from farms.",
     badge: "🔥 FARM FRESH",
   },
   {
-    image: "/banners/multispices.jpg",
+    image: "/banners/multispices.webp",
     title: "Spice Up Every Meal Naturally",
     subtitle: "With 100% authentic blends.",
     badge: "🌿 ORGANIC GUARANTEED",
@@ -83,7 +83,7 @@ export default function HeroCarousel() {
             onClick={() => router.push("/all-products")}
           >
             Shop Now <ArrowRight className="ml-2 h-5 w-5" />
-          </Button> 
+          </Button>
         </div>
       </div>
 
