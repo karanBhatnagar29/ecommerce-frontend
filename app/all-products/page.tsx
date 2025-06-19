@@ -58,7 +58,7 @@ export default function ProductPage() {
       {/* Banner */}
       <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden bg-gray-200 mb-6 flex items-center justify-center text-gray-500 text-xl font-medium">
         <img
-          src="/banners/all_products.jpg"
+          src="/banners/all_products.webp"
           alt="All Products Banner"
           className="object-cover w-full h-full"
         />
