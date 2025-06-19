@@ -1,8 +1,8 @@
 // components/OtpLoginForm.tsx
 import { useState } from "react";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
 
 export default function OtpLoginForm() {
   const [phone, setPhone] = useState("");
@@ -12,9 +12,12 @@ export default function OtpLoginForm() {
 
   const handleRequestOtp = async () => {
     try {
-      await axios.post(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/request-otp`, {
-        phone,
-      });
+      await axiosInstance.post(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/auth/request-otp`,
+        {
+          phone,
+        }
+      );
       setStep(2);
       alert("OTP sent! Check console (dev only)");
     } catch (err) {
@@ -24,7 +27,7 @@ export default function OtpLoginForm() {
 
   const handleVerifyOtp = async () => {
     try {
-      const res = await axios.post(
+      const res = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/auth/verify-otp`,
         {
           phone,

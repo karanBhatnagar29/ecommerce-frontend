@@ -5,9 +5,9 @@ import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
 
 export default function CheckoutModal() {
   const [isOpen, setIsOpen] = useState(true);
@@ -68,7 +68,7 @@ export default function CheckoutModal() {
 
     const fetchProduct = async () => {
       try {
-        const res = await axios.get(
+        const res = await axiosInstance.get(
           `http://51.20.166.225:3000/product/${productId}`,
           {
             headers: {
@@ -112,7 +112,7 @@ export default function CheckoutModal() {
     };
 
     try {
-      const res = await axios.post(
+      const res = await axiosInstance.post(
         "http://51.20.166.225:3000/order/initiate-payment",
         payload,
         {
@@ -161,7 +161,7 @@ export default function CheckoutModal() {
     };
 
     try {
-      const res = await axios.post(
+      const res = await axiosInstance.post(
         `http://51.20.166.225:3000/order/confirm/${paymentIntentId}`,
         {
           headers: {

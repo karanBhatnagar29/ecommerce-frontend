@@ -2,9 +2,9 @@
 
 import { useEffect, useState } from "react";
 import { useParams } from "next/navigation";
-import axios from "axios";
 import { Star } from "lucide-react";
 import { useRouter } from "next/navigation";
+import axiosInstance from "@/lib/axiosInstance";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -18,7 +18,7 @@ export default function ProductPage() {
 
     async function fetchProduct() {
       try {
-        const res = await axios.get(
+        const res = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_BASE_URL}/product/${id}`
         );
         setProduct(res.data);

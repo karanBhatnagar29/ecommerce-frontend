@@ -4,7 +4,6 @@ import Image from "next/image";
 import { useEffect, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { useRouter } from "next/navigation";
-import axios from "axios";
 import AddToCartButton from "@/lib/cartApi";
 import axiosInstance from "@/lib/axiosInstance";
 

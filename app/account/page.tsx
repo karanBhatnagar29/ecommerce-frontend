@@ -1,13 +1,13 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import axios from "axios";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
 } from "@heroicons/react/24/solid";
+import axiosInstance from "@/lib/axiosInstance";
 
 interface User {
   _id: string;
@@ -75,7 +75,7 @@ export default function AccountPage() {
       try {
         const token = Cookies.get("token");
 
-        const res = await axios.get(
+        const res = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_BASE_URL}/user/profile`,
           {
             headers: {
@@ -85,7 +85,7 @@ export default function AccountPage() {
         );
         setUser(res.data);
 
-        const ordersRes = await axios.get(
+        const ordersRes = await axiosInstance.get(
           `${process.env.NEXT_PUBLIC_BASE_URL}/order/user/${res.data._id}`,
           {
             headers: {
@@ -227,27 +227,44 @@ export default function AccountPage() {
                           <strong>Status:</strong> {order.status}
                         </p>
                         <p className="text-sm text-gray-500">
-                          <strong>Placed on:</strong> {new Date(order.createdAt).toLocaleDateString()}
+                          <strong>Placed on:</strong>{" "}
+                          {new Date(order.createdAt).toLocaleDateString()}
                         </p>
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                           {order.products.map((item, idx) => {
                             const product = item.productId;
-                            const variant = product.variants.find(v => v.label === item.variantLabel);
+                            const variant = product.variants.find(
+                              (v) => v.label === item.variantLabel
+                            );
                             return (
-                              <div key={idx} className="flex gap-4 border p-3 rounded-lg bg-white">
+                              <div
+                                key={idx}
+                                className="flex gap-4 border p-3 rounded-lg bg-white"
+                              >
                                 <img
                                   src={product.images[0]}
                                   alt={product.name}
                                   className="w-20 h-20 object-cover rounded"
                                 />
                                 <div>
-                                  <h3 className="font-semibold text-gray-800">{product.name}</h3>
-                                  <p className="text-sm text-gray-500">Brand: {product.brand}</p>
-                                  <p className="text-sm text-gray-500">Variant: {item.variantLabel}</p>
-                                  <p className="text-sm text-gray-500">Qty: {item.quantity}</p>
+                                  <h3 className="font-semibold text-gray-800">
+                                    {product.name}
+                                  </h3>
+                                  <p className="text-sm text-gray-500">
+                                    Brand: {product.brand}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Variant: {item.variantLabel}
+                                  </p>
+                                  <p className="text-sm text-gray-500">
+                                    Qty: {item.quantity}
+                                  </p>
                                   <p className="text-sm text-gray-700 font-medium">
-                                    ₹{variant?.price} x {item.quantity} = ₹{variant?.price ? variant.price * item.quantity : 0}
+                                    ₹{variant?.price} x {item.quantity} = ₹
+                                    {variant?.price
+                                      ? variant.price * item.quantity
+                                      : 0}
                                   </p>
                                 </div>
                               </div>
@@ -259,10 +276,29 @@ export default function AccountPage() {
                           Total: ₹{order.totalPrice}
                         </div>
                         <div className="text-sm text-gray-600 mt-2">
-                          <p><strong>Payment:</strong> {order.paymentInfo.paymentMethod} ({order.paymentInfo.isPaid ? "Paid" : "Unpaid"})</p>
-                          <p><strong>Shipping Address:</strong> {order.shippingInfo.shippingAddress}, {order.shippingInfo.city}, {order.shippingInfo.state} - {order.shippingInfo.pincode}</p>
-                          {order.couponCode && <p><strong>Coupon Applied:</strong> {order.couponCode}</p>}
-                          {order.orderNotes && <p><strong>Note:</strong> {order.orderNotes}</p>}
+                          <p>
+                            <strong>Payment:</strong>{" "}
+                            {order.paymentInfo.paymentMethod} (
+                            {order.paymentInfo.isPaid ? "Paid" : "Unpaid"})
+                          </p>
+                          <p>
+                            <strong>Shipping Address:</strong>{" "}
+                            {order.shippingInfo.shippingAddress},{" "}
+                            {order.shippingInfo.city},{" "}
+                            {order.shippingInfo.state} -{" "}
+                            {order.shippingInfo.pincode}
+                          </p>
+                          {order.couponCode && (
+                            <p>
+                              <strong>Coupon Applied:</strong>{" "}
+                              {order.couponCode}
+                            </p>
+                          )}
+                          {order.orderNotes && (
+                            <p>
+                              <strong>Note:</strong> {order.orderNotes}
+                            </p>
+                          )}
                         </div>
                       </li>
                     ))}

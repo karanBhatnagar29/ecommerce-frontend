@@ -1,6 +1,5 @@
 "use client";
 
-import axios from "axios";
 import Cookies from "js-cookie";
 import { Button } from "@/components/ui/button";
 import { useState } from "react";

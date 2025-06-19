@@ -7,8 +7,8 @@ import {
   useState,
   ReactNode,
 } from "react";
-import axios from "axios";
 import Cookies from "js-cookie";
+import axiosInstance from "./axiosInstance";
 
 // --- Types ---
 export interface Product {
@@ -65,7 +65,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }
 
     try {
-      const response = await axios.get(
+      const response = await axiosInstance.get(
         `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
         {
           headers: { Authorization: `Bearer ${token}` },
@@ -104,7 +104,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     try {
-      await axios.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/${itemId}`, {
+      await axiosInstance.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/${itemId}`, {
         headers: { Authorization: `Bearer ${token}` },
       });
 
@@ -124,7 +124,7 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     if (!token) return;
 
     try {
-      await axios.post(
+      await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/cart`,
         { productId, variantLabel, quantity },
         { headers: { Authorization: `Bearer ${token}` } }
