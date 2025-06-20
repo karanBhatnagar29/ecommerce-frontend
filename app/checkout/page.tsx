@@ -8,6 +8,7 @@ import { Label } from "@/components/ui/label";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
+import { toast } from "sonner";
 
 export default function CheckoutModal() {
   const [isOpen, setIsOpen] = useState(true);
@@ -24,6 +25,14 @@ export default function CheckoutModal() {
     state: "",
     pincode: "",
     deliveryInstructions: "",
+  });
+
+  const [errors, setErrors] = useState({
+    phone: "",
+    city: "",
+    state: "",
+    pincode: "",
+    shippingAddress: "", // ✅ add this
   });
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -85,10 +94,37 @@ export default function CheckoutModal() {
     fetchProduct();
   }, [productId, cartItems.length]);
 
+  const validateForm = () => {
+    const newErrors: any = {};
+    const phoneRegex = /^[0-9]{10}$/;
+
+    if (!shipping.phone || !phoneRegex.test(shipping.phone)) {
+      newErrors.phone = "Enter a valid 10-digit phone number.";
+    }
+    if (!shipping.city) {
+      newErrors.city = "City is required.";
+    }
+    if (!shipping.state) {
+      newErrors.state = "State is required.";
+    }
+    if (!shipping.pincode) {
+      newErrors.pincode = "Pincode is required.";
+    }
+    if (!shipping.shippingAddress) {
+      newErrors.shippingAddress = "Shipping address is required.";
+    }
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  };
+
   const handleInitiatePayment = async () => {
     if (!userId) {
       router.push("/auth/login");
+      return;
     }
+
+    if (!validateForm()) return;
 
     const payload = {
       userId,
@@ -127,7 +163,6 @@ export default function CheckoutModal() {
       setPaymentIntentId(res.data.paymentIntentId);
     } catch (error) {
       console.error("Payment init error:", error);
-      // alert("Failed to initiate payment");
     }
   };
 
@@ -178,7 +213,6 @@ export default function CheckoutModal() {
       setIsOpen(false);
     } catch (error) {
       console.error("Order confirm error:", error);
-      // alert("Failed to confirm order");
     }
   };
 
@@ -261,6 +295,7 @@ export default function CheckoutModal() {
           ) : (
             <p>Loading product details...</p>
           )}
+
           <div className="text-lg font-semibold text-gray-800 mb-2">
             Total Amount: ₹
             {cartItems.length > 0
@@ -269,6 +304,7 @@ export default function CheckoutModal() {
                   .toFixed(2)
               : (selectedVariant?.price || 0 * quantity).toFixed(2)}
           </div>
+
           {qrUrl ? (
             <div className="border p-3 rounded text-center">
               <div className="font-semibold mb-2">Scan this QR to Pay</div>
@@ -282,7 +318,11 @@ export default function CheckoutModal() {
             </div>
           ) : (
             <>
-              <ShippingForm shipping={shipping} setShipping={setShipping} />
+              <ShippingForm
+                shipping={shipping}
+                setShipping={setShipping}
+                errors={errors}
+              />
               <InputField
                 label="Order Notes"
                 value={orderNotes}
@@ -315,11 +355,13 @@ const InputField = ({
   value,
   onChange,
   type = "text",
+  error,
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   type?: string;
+  error?: string;
 }) => (
   <div>
     <Label className="text-sm font-medium">{label}</Label>
@@ -330,15 +372,18 @@ const InputField = ({
       placeholder={`Enter ${label.toLowerCase()}`}
       className="mt-1"
     />
+    {error && <p className="text-sm text-red-500 mt-1">{error}</p>}
   </div>
 );
 
 const ShippingForm = ({
   shipping,
   setShipping,
+  errors,
 }: {
   shipping: any;
   setShipping: (v: any) => void;
+  errors: any;
 }) => (
   <>
     <h3 className="font-medium mb-4">Shipping Details</h3>
@@ -347,31 +392,47 @@ const ShippingForm = ({
         label="Phone"
         value={shipping.phone}
         onChange={(v) => setShipping({ ...shipping, phone: v })}
+        error={errors.phone}
       />
       <InputField
         label="Alternate Phone"
         value={shipping.alternatePhone}
         onChange={(v) => setShipping({ ...shipping, alternatePhone: v })}
       />
+      {/* <div className="space-y-1">
+        <Label>Shipping Address</Label>
+        <Input
+          placeholder="Enter shipping address"
+          value={shipping.shippingAddress}
+          onChange={(e) =>
+            setShipping({ ...shipping, shippingAddress: e.target.value })
+          }
+        />
+      </div> */}
       <InputField
-        label="Address"
+        label="Shipping Address"
         value={shipping.shippingAddress}
         onChange={(v) => setShipping({ ...shipping, shippingAddress: v })}
+        error={errors.shippingAddress} // ✅ Add this
       />
+
       <InputField
         label="City"
         value={shipping.city}
         onChange={(v) => setShipping({ ...shipping, city: v })}
+        error={errors.city}
       />
       <InputField
         label="State"
         value={shipping.state}
         onChange={(v) => setShipping({ ...shipping, state: v })}
+        error={errors.state}
       />
       <InputField
         label="Pincode"
         value={shipping.pincode}
         onChange={(v) => setShipping({ ...shipping, pincode: v })}
+        error={errors.pincode}
       />
       <InputField
         label="Delivery Instructions"
