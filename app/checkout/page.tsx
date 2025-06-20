@@ -13,7 +13,7 @@ import { toast } from "sonner";
 export default function CheckoutModal() {
   const [isOpen, setIsOpen] = useState(true);
   const [couponCode, setCouponCode] = useState("SUMMER2025");
-  const [orderNotes, setOrderNotes] = useState("Gift wrap this order, please");
+  const [orderNotes, setOrderNotes] = useState("");
   const token = Cookies.get("token");
   const router = useRouter();
 
@@ -32,7 +32,7 @@ export default function CheckoutModal() {
     city: "",
     state: "",
     pincode: "",
-    shippingAddress: "", // ✅ add this
+    shippingAddress: "",
   });
 
   const [product, setProduct] = useState<Product | null>(null);
@@ -350,21 +350,27 @@ export default function CheckoutModal() {
   ) : null;
 }
 
+// InputField with red asterisk
 const InputField = ({
   label,
   value,
   onChange,
   type = "text",
   error,
+  required = false,
 }: {
   label: string;
   value: string;
   onChange: (val: string) => void;
   type?: string;
   error?: string;
+  required?: boolean;
 }) => (
   <div>
-    <Label className="text-sm font-medium">{label}</Label>
+    <Label className="text-sm font-medium">
+      {label}
+      {required && <span className="text-red-500 ml-1">*</span>}
+    </Label>
     <Input
       type={type}
       value={value}
@@ -376,6 +382,7 @@ const InputField = ({
   </div>
 );
 
+// Shipping form using red asterisk on required fields
 const ShippingForm = ({
   shipping,
   setShipping,
@@ -393,46 +400,40 @@ const ShippingForm = ({
         value={shipping.phone}
         onChange={(v) => setShipping({ ...shipping, phone: v })}
         error={errors.phone}
+        required
       />
       <InputField
         label="Alternate Phone"
         value={shipping.alternatePhone}
         onChange={(v) => setShipping({ ...shipping, alternatePhone: v })}
       />
-      {/* <div className="space-y-1">
-        <Label>Shipping Address</Label>
-        <Input
-          placeholder="Enter shipping address"
-          value={shipping.shippingAddress}
-          onChange={(e) =>
-            setShipping({ ...shipping, shippingAddress: e.target.value })
-          }
-        />
-      </div> */}
       <InputField
         label="Shipping Address"
         value={shipping.shippingAddress}
         onChange={(v) => setShipping({ ...shipping, shippingAddress: v })}
-        error={errors.shippingAddress} // ✅ Add this
+        error={errors.shippingAddress}
+        required
       />
-
       <InputField
         label="City"
         value={shipping.city}
         onChange={(v) => setShipping({ ...shipping, city: v })}
         error={errors.city}
+        required
       />
       <InputField
         label="State"
         value={shipping.state}
         onChange={(v) => setShipping({ ...shipping, state: v })}
         error={errors.state}
+        required
       />
       <InputField
         label="Pincode"
         value={shipping.pincode}
         onChange={(v) => setShipping({ ...shipping, pincode: v })}
         error={errors.pincode}
+        required
       />
       <InputField
         label="Delivery Instructions"
