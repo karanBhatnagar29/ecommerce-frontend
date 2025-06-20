@@ -127,7 +127,7 @@ export default function CheckoutModal() {
       setPaymentIntentId(res.data.paymentIntentId);
     } catch (error) {
       console.error("Payment init error:", error);
-      alert("Failed to initiate payment");
+      // alert("Failed to initiate payment");
     }
   };
 
@@ -178,7 +178,7 @@ export default function CheckoutModal() {
       setIsOpen(false);
     } catch (error) {
       console.error("Order confirm error:", error);
-      alert("Failed to confirm order");
+      // alert("Failed to confirm order");
     }
   };
 
