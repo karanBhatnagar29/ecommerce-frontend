@@ -41,7 +41,7 @@ export default function LoginPage() {
       );
 
       const { token, isProfileComplete, user } = res.data;
-      Cookies.set("token", token, { expires: 7 });
+      Cookies.set("token", token, { expires: 1080 }); // 30 days
       console.log(res.data);
       sessionStorage.setItem("userID", user._id);
 

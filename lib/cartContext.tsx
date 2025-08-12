@@ -104,9 +104,12 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     try {
-      await axiosInstance.delete(`${process.env.NEXT_PUBLIC_BASE_URL}/cart/${itemId}`, {
-        headers: { Authorization: `Bearer ${token}` },
-      });
+      await axiosInstance.delete(
+        `${process.env.NEXT_PUBLIC_BASE_URL}/cart/${itemId}`,
+        {
+          headers: { Authorization: `Bearer ${token}` },
+        }
+      );
 
       // Optional: re-fetch to confirm sync
       await fetchCart();

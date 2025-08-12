@@ -163,6 +163,7 @@ export default function CheckoutModal() {
       setPaymentIntentId(res.data.paymentIntentId);
     } catch (error) {
       console.error("Payment init error:", error);
+      toast.error("Failed to initiate payment. Please try again.");
     }
   };
 
@@ -401,11 +402,13 @@ const ShippingForm = ({
         onChange={(v) => setShipping({ ...shipping, phone: v })}
         error={errors.phone}
         required
+        type="tel"
       />
       <InputField
         label="Alternate Phone"
         value={shipping.alternatePhone}
         onChange={(v) => setShipping({ ...shipping, alternatePhone: v })}
+        type="tel"
       />
       <InputField
         label="Shipping Address"
@@ -420,6 +423,7 @@ const ShippingForm = ({
         onChange={(v) => setShipping({ ...shipping, city: v })}
         error={errors.city}
         required
+        type="text"
       />
       <InputField
         label="State"
@@ -434,6 +438,7 @@ const ShippingForm = ({
         onChange={(v) => setShipping({ ...shipping, pincode: v })}
         error={errors.pincode}
         required
+        type="number"
       />
       <InputField
         label="Delivery Instructions"

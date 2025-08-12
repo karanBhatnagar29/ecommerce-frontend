@@ -93,6 +93,8 @@ export default function AccountPage() {
             },
           }
         );
+        console.log("Profile data from backend:", res.data);
+
         setOrders(ordersRes.data);
         console.log(res.data._id);
       } catch (err) {
