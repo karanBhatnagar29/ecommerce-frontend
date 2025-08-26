@@ -608,7 +608,7 @@ export default function CheckoutModal() {
             sessionStorage.removeItem("cart");
             sessionStorage.removeItem("productId");
             setIsOpen(false);
-            router.push("/orders");
+            router.push("/account");
           } catch (err) {
             console.error(err);
             toast.error("❌ Payment verification failed!");
