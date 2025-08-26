@@ -556,7 +556,6 @@ export default function CheckoutModal() {
     if (!validateForm()) return;
 
     const payload = {
-      userId,
       products:
         cartItems.length > 0
           ? cartItems.map((item) => ({
