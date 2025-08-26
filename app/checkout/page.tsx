@@ -78,7 +78,7 @@ export default function CheckoutModal() {
     const fetchProduct = async () => {
       try {
         const res = await axiosInstance.get(
-          `http://51.20.166.225:3000/product/${productId}`,
+          `${process.env.NEXT_PUBLIC_BASE_URL}/product/${productId}`,
           {
             headers: {
               Authorization: `Bearer ${token}`,
