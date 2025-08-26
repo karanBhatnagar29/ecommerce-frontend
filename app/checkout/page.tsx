@@ -149,7 +149,7 @@ export default function CheckoutModal() {
 
     try {
       const res = await axiosInstance.post(
-        "http://51.20.166.225:3000/order/initiate-payment",
+        ` ${process.env.NEXT_PUBLIC_BASE_URL}/order/initiate-payment`,
         payload,
         {
           headers: {

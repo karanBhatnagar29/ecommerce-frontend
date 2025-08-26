@@ -42,6 +42,8 @@ interface CartContextType {
     quantity?: number
   ) => Promise<void>;
   count: number;
+    increaseItem: (itemId: string) => void; // ✅
+  decreaseItem: (itemId: string) => void; // ✅
 }
 
 // --- Default context ---
@@ -52,6 +54,8 @@ const CartContext = createContext<CartContextType>({
   removeItem: async () => {},
   addItem: async () => {},
   count: 0,
+    increaseItem: () => {},  // ✅ add these
+  decreaseItem: () => {},  // ✅ add these
 });
 
 export const CartProvider = ({ children }: { children: ReactNode }) => {
@@ -139,6 +143,37 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
       console.error("Failed to add item to cart", error);
     }
   };
+  const increaseItem = (itemId: string) => {
+    setCart((prev) => {
+      const updatedItems = prev.items.map((item) =>
+        item._id === itemId
+          ? {
+              ...item,
+              quantity: item.quantity + 1,
+              subtotal: (item.quantity + 1) * item.price,
+            }
+          : item
+      );
+      return { ...prev, items: updatedItems };
+    });
+  };
+
+  const decreaseItem = (itemId: string) => {
+    setCart((prev) => {
+      const updatedItems = prev.items
+        .map((item) =>
+          item._id === itemId
+            ? {
+                ...item,
+                quantity: item.quantity - 1,
+                subtotal: (item.quantity - 1) * item.price,
+              }
+            : item
+        )
+        .filter((item) => item.quantity > 0); // auto-remove if qty reaches 0
+      return { ...prev, items: updatedItems };
+    });
+  };
 
   const count = cart.items.reduce((acc, item) => acc + item.quantity, 0);
 
@@ -151,6 +186,8 @@ export const CartProvider = ({ children }: { children: ReactNode }) => {
         removeItem,
         addItem,
         count,
+        increaseItem, // ✅
+        decreaseItem, // ✅
       }}
     >
       {children}

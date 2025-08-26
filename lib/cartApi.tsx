@@ -11,17 +11,18 @@ interface AddToCartButtonProps {
   productId: string;
   variantLabel?: string;
   quantity?: number;
-  className?: string; // ✅ allow custom styles
+  className?: string;
 }
 
 export default function AddToCartButton({
   productId,
   variantLabel,
   quantity = 1,
-  className = "", // ✅ default to empty
+  className = "",
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+  const [showBanner, setShowBanner] = useState(false); // ✅ banner state
   const router = useRouter();
   const { addItem } = useCart();
 
@@ -29,7 +30,11 @@ export default function AddToCartButton({
     const token = Cookies.get("token");
 
     if (!token) {
-      router.push("/auth/login");
+      setShowBanner(true); // show banner
+      setTimeout(() => {
+        setShowBanner(false); // hide after 2s
+        router.push("/auth/login"); // redirect
+      }, 2000);
       return;
     }
 
@@ -51,21 +56,31 @@ export default function AddToCartButton({
   };
 
   return (
-    <Button
-      size="sm"
-      variant="outline"
-      className={`text-orange-600 border-orange-400 hover:bg-orange-50 text-xs px-3 ${className}`}
-      onClick={handleAddToCart}
-      disabled={loading}
-      title={success ? "Added to cart" : "Add to cart"}
-    >
-      {loading ? (
-        <Loader2 className="w-4 h-4 animate-spin" />
-      ) : success ? (
-        <Check className="w-4 h-4" />
-      ) : (
-        <ShoppingCart className="w-4 h-4" />
+    <>
+      {/* ✅ Global Banner */}
+      {showBanner && (
+        <div className="fixed top-0 left-0 w-full z-50 bg-red-600 text-white text-center py-3 font-medium shadow-md">
+          Please login to continue
+        </div>
       )}
-    </Button>
+
+      {/* Button */}
+      <Button
+        size="sm"
+        variant="outline"
+        className={`text-orange-600 border-orange-400 hover:bg-orange-50 text-xs px-3 ${className}`}
+        onClick={handleAddToCart}
+        disabled={loading}
+        title={success ? "Added to cart" : "Add to cart"}
+      >
+        {loading ? (
+          <Loader2 className="w-4 h-4 animate-spin" />
+        ) : success ? (
+          <Check className="w-4 h-4" />
+        ) : (
+          <ShoppingCart className="w-4 h-4" />
+        )}
+      </Button>
+    </>
   );
 }

@@ -6,7 +6,7 @@ import { useRouter } from "next/navigation";
 import { useCart } from "@/lib/cartContext";
 
 export default function CartPage() {
-  const { cartItems, removeItem } = useCart();
+  const { cartItems, removeItem, increaseItem, decreaseItem } = useCart();
   const [loading, setLoading] = useState(false);
   const router = useRouter();
 
@@ -20,7 +20,7 @@ export default function CartPage() {
 
   const handleCheckout = () => {
     sessionStorage.setItem("cart", JSON.stringify(cartItems));
-    router.push("/checkout"); // Your CheckoutModal is already set to auto-open via `useEffect`
+    router.push("/checkout"); // Checkout page auto-opens modal
   };
 
   if (!cartItems || cartItems.length === 0) {
@@ -28,8 +28,6 @@ export default function CartPage() {
   }
 
   const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
-  const shippingCost = 50;
-  const finalTotal = total + shippingCost;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -51,16 +49,38 @@ export default function CartPage() {
                 height={80}
                 className="rounded-md object-cover"
               />
+
               <div className="flex-1">
                 <h3 className="text-lg font-semibold">{item.productId.name}</h3>
                 <p className="text-sm text-gray-500">{item.variantLabel}</p>
-                <p className="mt-1 font-medium text-orange-600">
-                  ₹{item.price} x {item.quantity}
+
+                {/* Quantity Controls */}
+                <div className="flex items-center gap-3 mt-2">
+                  <button
+                    onClick={() => decreaseItem(item._id)}
+                    className="px-2 py-1 border rounded text-sm"
+                  >
+                    -
+                  </button>
+                  <span className="font-medium">{item.quantity}</span>
+                  <button
+                    onClick={() => increaseItem(item._id)}
+                    className="px-2 py-1 border rounded text-sm"
+                  >
+                    +
+                  </button>
+                </div>
+
+                <p className="mt-2 font-medium text-orange-600">
+                  ₹{item.price} each
                 </p>
               </div>
+
               <div className="text-right font-semibold text-gray-700">
                 ₹{item.subtotal}
               </div>
+
+              {/* ✅ FIXED remove (use item._id, not productId._id) */}
               <button
                 onClick={() => handleRemove(item.productId._id)}
                 className="absolute top-2 right-2 text-xs text-red-600 hover:underline"
@@ -80,10 +100,6 @@ export default function CartPage() {
             <span>Items ({cartItems.length})</span>
             <span>₹{total}</span>
           </div>
-          {/* <div className="flex justify-between">
-            <span>Shipping</span>
-            <span>₹{shippingCost}</span>
-          </div> */}
           <div className="flex justify-between font-semibold text-lg pt-2 border-t mt-4">
             <span>Total</span>
             <span>₹{total}</span>
