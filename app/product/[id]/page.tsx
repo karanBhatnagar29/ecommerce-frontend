@@ -5,6 +5,7 @@ import { useParams, useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import RecommendedProducts from "@/components/ui/RecommendedProducts";
+import AddToCartButton from "@/lib/cartApi";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -125,14 +126,24 @@ export default function ProductPage() {
             )}
           </div>
 
-          {/* Buy Now Button */}
-          <button
-            className="w-full bg-green-700 text-white py-3 rounded-md text-lg hover:bg-green-800 transition"
-            disabled={selectedVariant?.stock === 0}
-            onClick={handleBuyNow}
-          >
-            ⚡ Buy Now
-          </button>
+          {/* Buttons Row: Buy Now + Add to Cart */}
+          <div className="flex gap-3 mt-4">
+            <button
+              className="flex-1 bg-green-700 text-white py-3 rounded-md text-lg hover:bg-green-800 transition"
+              disabled={selectedVariant?.stock === 0}
+              onClick={handleBuyNow}
+            >
+              ⚡ Buy Now
+            </button>
+
+            <div className="flex-[1] flex justify-center items-center">
+              <AddToCartButton
+                productId={product._id}
+                variantLabel={selectedVariant?.label}
+                className="w-full h-full"
+              />
+            </div>
+          </div>
         </div>
       </div>
 
