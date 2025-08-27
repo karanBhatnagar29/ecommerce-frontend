@@ -451,7 +451,7 @@
 
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, use } from "react";
 import { X, ArrowLeft } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -549,10 +549,6 @@ export default function CheckoutModal() {
   };
 
   const handleCheckout = async () => {
-    if (!userId) {
-      router.push("/auth/login");
-      return;
-    }
     if (!validateForm()) return;
 
     const payload = {
@@ -563,13 +559,7 @@ export default function CheckoutModal() {
               quantity: item.quantity,
               variantLabel: item.variantLabel,
             }))
-          : [
-              {
-                productId,
-                quantity,
-                variantLabel,
-              },
-            ],
+          : [{ productId, quantity, variantLabel }],
       shippingInfo: shipping,
       couponCode,
       orderNotes,
@@ -579,19 +569,14 @@ export default function CheckoutModal() {
       const res = await axiosInstance.post(
         `${process.env.NEXT_PUBLIC_BASE_URL}/order/create-payment-intent`,
         payload,
-        {
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       const { amount, razorpayOrderId, paymentIntentId } = res.data;
 
       const options: any = {
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID,
-        amount: amount * 100,
+        amount, // ✅ don’t multiply again
         currency: "INR",
         name: "Zesty Crops",
         description: "Order Payment",
@@ -600,12 +585,15 @@ export default function CheckoutModal() {
           try {
             await axiosInstance.post(
               `${process.env.NEXT_PUBLIC_BASE_URL}/order/verify-payment`,
-              { ...response, paymentIntentId },
+              {
+                ...response,
+                paymentIntentId,
+                order: payload, // ✅ send order details
+              },
               { headers: { Authorization: `Bearer ${token}` } }
             );
             toast.success("✅ Payment successful, order created!");
-            sessionStorage.removeItem("cart");
-            sessionStorage.removeItem("productId");
+            sessionStorage.clear();
             setIsOpen(false);
             router.push("/account");
           } catch (err) {
