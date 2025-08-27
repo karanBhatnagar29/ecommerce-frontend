@@ -90,7 +90,8 @@ export default function RecommendedProducts({
             return (
               <div
                 key={product._id}
-                className="bg-white rounded-2xl shadow hover:shadow-lg border border-gray-200 overflow-hidden flex flex-col"
+                className="bg-white rounded-2xl shadow hover:shadow-lg border border-gray-200 overflow-hidden flex flex-col cursor-pointer"
+                onClick={() => router.push(`/product/${product._id}`)}
               >
                 {/* Product Image */}
                 <div className="relative w-full aspect-square bg-gray-100 flex items-center justify-center">
@@ -115,7 +116,7 @@ export default function RecommendedProducts({
                   <div className="mt-4 flex gap-2 w-full">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation();
+                        e.stopPropagation(); // Prevent redirect
                         handleBuyNow(product);
                       }}
                       className="flex-[3] bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 transition flex justify-center items-center"
@@ -125,7 +126,7 @@ export default function RecommendedProducts({
 
                     <div
                       className="flex-[1] flex justify-center items-center"
-                      onClick={(e) => e.stopPropagation()}
+                      onClick={(e) => e.stopPropagation()} // Prevent redirect
                     >
                       <AddToCartButton
                         className="w-full h-full"
