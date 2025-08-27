@@ -6,6 +6,7 @@ import { useRouter } from "next/navigation";
 import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
+  ShoppingBagIcon,
 } from "@heroicons/react/24/solid";
 import axiosInstance from "@/lib/axiosInstance";
 
@@ -36,12 +37,6 @@ interface OrderProduct {
   variantLabel?: string;
 }
 
-interface PaymentInfo {
-  paymentMethod: string;
-  transactionId: string;
-  isPaid: boolean;
-}
-
 interface ShippingInfo {
   shippingAddress: string;
   phone: string;
@@ -58,9 +53,14 @@ interface Order {
   status: string;
   createdAt: string;
   shippingInfo: ShippingInfo;
-  paymentInfo: PaymentInfo;
   couponCode?: string;
   orderNotes?: string;
+  // paymentInfo is optional since your API doesn’t return it
+  paymentInfo?: {
+    paymentMethod?: string;
+    transactionId?: string;
+    isPaid?: boolean;
+  };
 }
 
 export default function AccountPage() {
@@ -93,10 +93,8 @@ export default function AccountPage() {
             },
           }
         );
-        console.log("Profile data from backend:", res.data);
 
         setOrders(ordersRes.data);
-        console.log(res.data._id);
       } catch (err) {
         console.error("Error fetching data", err);
       } finally {
@@ -123,8 +121,9 @@ export default function AccountPage() {
   }
 
   return (
-    <div className="bg-white min-h-screen py-10 px-4 md:px-8">
+    <div className="bg-gray-50 min-h-screen py-10 px-4 md:px-8">
       <div className="max-w-6xl mx-auto">
+        {/* Header */}
         <div className="flex justify-between items-center mb-10">
           <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
             My Account
@@ -138,13 +137,14 @@ export default function AccountPage() {
         </div>
 
         <div className="flex flex-col md:flex-row gap-6">
+          {/* Sidebar */}
           <div className="w-full md:w-1/4 space-y-4">
             <div
               onClick={() => setActiveTab("profile")}
               className={`p-4 rounded-lg text-center cursor-pointer font-semibold transition ${
                 activeTab === "profile"
-                  ? "bg-yellow-400 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-yellow-400 text-white shadow"
+                  : "bg-white hover:bg-gray-100 border"
               }`}
             >
               Personal Information
@@ -153,17 +153,18 @@ export default function AccountPage() {
               onClick={() => setActiveTab("orders")}
               className={`p-4 rounded-lg text-center cursor-pointer font-semibold transition ${
                 activeTab === "orders"
-                  ? "bg-yellow-400 text-white"
-                  : "bg-gray-100 hover:bg-gray-200"
+                  ? "bg-yellow-400 text-white shadow"
+                  : "bg-white hover:bg-gray-100 border"
               }`}
             >
               My Orders
             </div>
           </div>
 
+          {/* Main content */}
           <div className="w-full md:w-3/4">
             {activeTab === "profile" && (
-              <div className="space-y-8">
+              <div className="space-y-8 bg-white p-6 rounded-xl shadow-sm">
                 <div className="flex items-center gap-4">
                   <UserCircleIcon className="w-20 h-20 text-green-600" />
                   <div>
@@ -177,62 +178,52 @@ export default function AccountPage() {
                 </div>
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Username</p>
-                    <p className="text-lg text-gray-800 font-medium">
-                      {user.username}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Email</p>
-                    <p className="text-lg text-gray-800 font-medium">
-                      {user.email}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Phone</p>
-                    <p className="text-lg text-gray-800 font-medium">
-                      {user.phone}
-                    </p>
-                  </div>
-
-                  <div>
-                    <p className="text-sm text-gray-500 mb-1">Address</p>
-                    <p className="text-lg text-gray-800 font-medium">
-                      {user.address}
-                    </p>
-                  </div>
+                  <Info label="Username" value={user.username} />
+                  <Info label="Email" value={user.email} />
+                  <Info label="Phone" value={user.phone} />
+                  <Info label="Address" value={user.address} />
                 </div>
               </div>
             )}
 
             {activeTab === "orders" && (
               <div className="mt-6">
-                <h2 className="text-xl font-semibold mb-4 text-gray-800">
+                <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
+                  <ShoppingBagIcon className="w-6 h-6 text-yellow-500" />
                   My Orders
                 </h2>
                 {orders.length === 0 ? (
                   <p className="text-gray-500">No orders found.</p>
                 ) : (
-                  <ul className="space-y-4">
+                  <div className="space-y-6">
                     {orders.map((order) => (
-                      <li
+                      <div
                         key={order._id}
-                        className="p-4 border border-gray-200 rounded-lg bg-gray-50 shadow-sm"
+                        className="p-6 border border-gray-200 rounded-xl bg-white shadow-sm"
                       >
-                        <p className="text-sm text-gray-500">
-                          <strong>Order ID:</strong> {order._id}
-                        </p>
-                        <p className="text-sm text-gray-500">
-                          <strong>Status:</strong> {order.status}
-                        </p>
+                        {/* Order Header */}
+                        <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
+                          <p className="text-sm text-gray-500">
+                            <strong>Order ID:</strong> {order._id}
+                          </p>
+                          <p
+                            className={`text-sm font-semibold ${
+                              order.status === "pending"
+                                ? "text-yellow-600"
+                                : order.status === "delivered"
+                                ? "text-green-600"
+                                : "text-gray-600"
+                            }`}
+                          >
+                            {order.status.toUpperCase()}
+                          </p>
+                        </div>
                         <p className="text-sm text-gray-500">
                           <strong>Placed on:</strong>{" "}
                           {new Date(order.createdAt).toLocaleDateString()}
                         </p>
 
+                        {/* Products */}
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
                           {order.products.map((item, idx) => {
                             const product = item.productId;
@@ -242,7 +233,7 @@ export default function AccountPage() {
                             return (
                               <div
                                 key={idx}
-                                className="flex gap-4 border p-3 rounded-lg bg-white"
+                                className="flex gap-4 border p-3 rounded-lg bg-gray-50"
                               >
                                 <img
                                   src={product.images[0]}
@@ -263,10 +254,11 @@ export default function AccountPage() {
                                     Qty: {item.quantity}
                                   </p>
                                   <p className="text-sm text-gray-700 font-medium">
-                                    ₹{variant?.price} x {item.quantity} = ₹
+                                    ₹{variant?.price || "-"} x {item.quantity} =
+                                    ₹
                                     {variant?.price
                                       ? variant.price * item.quantity
-                                      : 0}
+                                      : "-"}
                                   </p>
                                 </div>
                               </div>
@@ -274,17 +266,18 @@ export default function AccountPage() {
                           })}
                         </div>
 
+                        {/* Footer */}
                         <div className="mt-4 text-right font-bold text-gray-800">
                           Total: ₹{order.totalPrice}
                         </div>
-                        <div className="text-sm text-gray-600 mt-2">
+                        <div className="text-sm text-gray-600 mt-2 space-y-1">
                           <p>
                             <strong>Payment:</strong>{" "}
-                            {order.paymentInfo.paymentMethod} (
-                            {order.paymentInfo.isPaid ? "Paid" : "Unpaid"})
+                            {order.paymentInfo?.paymentMethod || "-"} (
+                            {order.paymentInfo?.isPaid ? "Paid" : "Unpaid"})
                           </p>
                           <p>
-                            <strong>Shipping Address:</strong>{" "}
+                            <strong>Shipping:</strong>{" "}
                             {order.shippingInfo.shippingAddress},{" "}
                             {order.shippingInfo.city},{" "}
                             {order.shippingInfo.state} -{" "}
@@ -302,15 +295,24 @@ export default function AccountPage() {
                             </p>
                           )}
                         </div>
-                      </li>
+                      </div>
                     ))}
-                  </ul>
+                  </div>
                 )}
               </div>
             )}
           </div>
         </div>
       </div>
+    </div>
+  );
+}
+
+function Info({ label, value }: { label: string; value: string }) {
+  return (
+    <div>
+      <p className="text-sm text-gray-500 mb-1">{label}</p>
+      <p className="text-lg text-gray-800 font-medium">{value || "-"}</p>
     </div>
   );
 }
