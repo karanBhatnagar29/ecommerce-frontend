@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
@@ -12,10 +12,37 @@ export default function CompleteProfile() {
     address: "",
   });
 
+  const [emailFetched, setEmailFetched] = useState(false); // ✅ new state
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
   const [error, setError] = useState("");
   const router = useRouter();
+
+  // 🔹 Fetch user details from /me
+  useEffect(() => {
+    const token = Cookies.get("token");
+    if (!token) {
+      router.push("/auth/login");
+      return;
+    }
+
+    axiosInstance
+      .get(`${process.env.NEXT_PUBLIC_BASE_URL}/auth/me`, {
+        headers: { Authorization: `Bearer ${token}` },
+      })
+      .then((res) => {
+        setForm({
+          username: res.data.username || "",
+          email: res.data.email || "",
+          address: res.data.address || "",
+        });
+        setEmailFetched(true); // ✅ disable email after fetch
+      })
+      .catch(() => {
+        setError("Session expired. Please log in again.");
+        router.push("/auth/login");
+      });
+  }, [router]);
 
   const handleSubmit = async () => {
     if (!form.username || !form.email || !form.address) {
@@ -23,7 +50,7 @@ export default function CompleteProfile() {
       return;
     }
 
-    const token = Cookies.get("token"); // ✅ Get token from cookies
+    const token = Cookies.get("token");
     if (!token) {
       setError("Token not found. Please log in again.");
       return;
@@ -35,14 +62,12 @@ export default function CompleteProfile() {
       await axiosInstance.put(
         `${process.env.NEXT_PUBLIC_BASE_URL}/auth/complete-profile`,
         form,
-        {
-          headers: { Authorization: `Bearer ${token}` },
-        }
+        { headers: { Authorization: `Bearer ${token}` } }
       );
 
       setSuccess(true);
       setTimeout(() => {
-        router.push("/"); // ✅ Redirect after success
+        router.push("/");
       }, 1500);
     } catch (err) {
       setError("Something went wrong. Please try again.");
@@ -78,7 +103,10 @@ export default function CompleteProfile() {
             placeholder="Email"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
-            className="w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:border-blue-400"
+            disabled={emailFetched} // ✅ disable after fetching
+            className={`w-full px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring focus:border-blue-400 ${
+              emailFetched ? "bg-gray-100 cursor-not-allowed" : ""
+            }`}
           />
           <input
             type="text"

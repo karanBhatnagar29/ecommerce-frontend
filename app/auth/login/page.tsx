@@ -1,8 +1,8 @@
 "use client";
-import { useState } from "react";
+import { useState, useRef } from "react";
 import axiosInstance from "@/lib/axiosInstance";
 import Cookies from "js-cookie";
-import { X, CheckCircle, XCircle } from "lucide-react";
+import { X, CheckCircle, XCircle, RefreshCcw } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 
 export default function LoginPage() {
@@ -10,11 +10,31 @@ export default function LoginPage() {
   const [otp, setOtp] = useState("");
   const [step, setStep] = useState(1);
   const [loading, setLoading] = useState(false);
-  const [notification, setNotification] = useState(""); // ✅ success banner
-  const [error, setError] = useState(""); // ✅ inline error
-  const [attempts, setAttempts] = useState(0); // ✅ track OTP tries
+  const [notification, setNotification] = useState("");
+  const [error, setError] = useState("");
+  const [attempts, setAttempts] = useState(0);
+  const [resendCooldown, setResendCooldown] = useState(0);
+
+  const otpInputRef = useRef<HTMLInputElement | null>(null);
+
+  const startCooldown = () => {
+    setResendCooldown(30);
+    const interval = setInterval(() => {
+      setResendCooldown((prev) => {
+        if (prev <= 1) {
+          clearInterval(interval);
+          return 0;
+        }
+        return prev - 1;
+      });
+    }, 1000);
+  };
 
   const handleRequestOtp = async () => {
+    if (!email) {
+      setError("Email is required");
+      return;
+    }
     setLoading(true);
     try {
       await axiosInstance.post(
@@ -23,7 +43,12 @@ export default function LoginPage() {
       );
       setStep(2);
       setNotification("OTP has been sent to your email!");
+      setError("");
       setTimeout(() => setNotification(""), 4000);
+
+      // focus OTP input
+      setTimeout(() => otpInputRef.current?.focus(), 300);
+      startCooldown();
     } catch (err) {
       setError("Failed to send OTP. Please try again.");
     } finally {
@@ -32,6 +57,10 @@ export default function LoginPage() {
   };
 
   const handleVerifyOtp = async () => {
+    if (!otp) {
+      setError("OTP is required");
+      return;
+    }
     setLoading(true);
     try {
       const res = await axiosInstance.post(
@@ -56,27 +85,31 @@ export default function LoginPage() {
         );
       }
     } catch (err) {
-      const nextAttempts = attempts + 1; // ✅ calculate next value
+      const nextAttempts = attempts + 1;
       setAttempts(nextAttempts);
 
       if (nextAttempts >= 3) {
-        // 🚨 redirect only after 3 wrong tries
         setError("Too many wrong attempts. Redirecting to login...");
         setTimeout(() => (window.location.href = "/auth/login"), 1500);
       } else {
-        // 🚫 just show error and let them retry
         setError("Invalid or expired OTP. Please try again.");
         setOtp("");
+        otpInputRef.current?.focus();
       }
     } finally {
       setLoading(false);
     }
   };
 
+  const maskedEmail = email.replace(
+    /(.{2})(.*)(?=@)/,
+    (_, a, b) => a + "*".repeat(b.length)
+  );
+
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm">
       <div className="relative bg-white w-[90%] max-w-md rounded-xl shadow-lg overflow-hidden text-center">
-        {/* Banner Image */}
+        {/* Banner */}
         <div className="relative">
           <img
             src="/category-banner/ghee.webp"
@@ -91,11 +124,11 @@ export default function LoginPage() {
           </button>
         </div>
 
-        {/* Form Section */}
+        {/* Form */}
         <div className="bg-white px-6 py-8">
           <h2 className="text-xl font-semibold mb-6">Sign In</h2>
 
-          {/* ✅ Success Notification */}
+          {/* ✅ Notifications */}
           <AnimatePresence>
             {notification && (
               <motion.div
@@ -117,18 +150,24 @@ export default function LoginPage() {
                 onChange={(e) => setEmail(e.target.value)}
                 placeholder="Enter your email address"
                 className="w-full px-4 py-2 border rounded-md mb-4"
+                onKeyDown={(e) => e.key === "Enter" && handleRequestOtp()}
               />
               <button
                 onClick={handleRequestOtp}
-                disabled={loading}
-                className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md transition"
+                disabled={loading || !email}
+                className="w-full bg-green-700 hover:bg-green-800 text-white py-2 rounded-md transition disabled:opacity-50"
               >
                 {loading ? "Sending..." : "Send OTP"}
               </button>
             </>
           ) : (
             <>
-              {/* ✅ Inline Error Above OTP */}
+              {/* Info about email */}
+              <p className="text-sm text-gray-600 mb-3">
+                Enter the OTP sent to <b>{maskedEmail}</b>
+              </p>
+
+              {/* Error */}
               <AnimatePresence>
                 {error && (
                   <motion.p
@@ -143,19 +182,35 @@ export default function LoginPage() {
               </AnimatePresence>
 
               <input
+                ref={otpInputRef}
                 type="text"
                 value={otp}
                 onChange={(e) => setOtp(e.target.value)}
                 placeholder="Enter OTP"
-                className="w-full px-4 py-2 border rounded-md mb-4"
+                className="w-full px-4 py-2 border rounded-md mb-4 text-center tracking-widest"
+                onKeyDown={(e) => e.key === "Enter" && handleVerifyOtp()}
               />
               <button
                 onClick={handleVerifyOtp}
-                disabled={loading}
-                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md transition"
+                disabled={loading || !otp}
+                className="w-full bg-green-600 hover:bg-green-700 text-white py-2 rounded-md transition disabled:opacity-50"
               >
                 {loading ? "Verifying..." : "Verify OTP"}
               </button>
+
+              {/* Resend OTP */}
+              <div className="mt-3 text-xs text-gray-500">
+                {resendCooldown > 0 ? (
+                  <span>Resend OTP in {resendCooldown}s</span>
+                ) : (
+                  <button
+                    onClick={handleRequestOtp}
+                    className="flex items-center gap-1 text-green-700 hover:underline mx-auto"
+                  >
+                    <RefreshCcw className="h-3 w-3" /> Resend OTP
+                  </button>
+                )}
+              </div>
             </>
           )}
 
