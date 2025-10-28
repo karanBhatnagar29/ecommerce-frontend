@@ -93,9 +93,9 @@ export default function CategorySlugPage() {
               <Image
                 src={cat.image || placeholderImage}
                 alt={cat.name}
-                width={80}
-                height={80}
-                className="object-cover w-full h-full"
+                width={300}
+                height={300}
+                className="object-contain w-full h-full bg-white"
               />
             </div>
             <span className="mt-1 text-center text-sm">{cat.name}</span>
@@ -117,12 +117,13 @@ export default function CategorySlugPage() {
               onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
-              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
+              {/* Product Image */}
+              <div className="relative w-full h-64 bg-white flex items-center justify-center overflow-hidden rounded-t-2xl">
                 <Image
                   src={product.images?.[0] || placeholderImage}
                   alt={product.name || "Product"}
                   fill
-                  className="object-cover"
+                  className="object-contain"
                 />
                 <div className="absolute top-2 left-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full shadow">
                   ⭐ Best Seller
