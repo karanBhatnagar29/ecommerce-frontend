@@ -11,6 +11,8 @@ export default function ProductPage() {
   const { id } = useParams();
   const [product, setProduct] = useState<any>(null);
   const [selectedVariant, setSelectedVariant] = useState<any>(null);
+  const [currentImages, setCurrentImages] = useState<string[]>([]);
+  const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
   const router = useRouter();
 
@@ -23,7 +25,18 @@ export default function ProductPage() {
           `${process.env.NEXT_PUBLIC_BASE_URL}/product/${id}`
         );
         setProduct(res.data);
-        setSelectedVariant(res.data.variants[0]);
+        const firstVariant = res.data.variants[0];
+        setSelectedVariant(firstVariant);
+        setCurrentImages(
+          firstVariant.images?.length
+            ? firstVariant.images
+            : res.data.images || []
+        );
+        setSelectedImage(
+          (firstVariant.images?.length
+            ? firstVariant.images[0]
+            : res.data.images?.[0]) || null
+        );
       } catch (err) {
         console.error("Failed to fetch product", err);
       } finally {
@@ -34,12 +47,17 @@ export default function ProductPage() {
     fetchProduct();
   }, [id]);
 
+  const handleVariantSelect = (variant: any) => {
+    setSelectedVariant(variant);
+    const imgs = variant.images?.length ? variant.images : product.images || [];
+    setCurrentImages(imgs);
+    setSelectedImage(imgs[0] || null);
+  };
+
   const handleBuyNow = () => {
     if (!product || !selectedVariant) return;
-
     sessionStorage.setItem("productId", product._id);
     sessionStorage.setItem("variantLabel", selectedVariant.label);
-
     router.push("/checkout");
   };
 
@@ -49,18 +67,36 @@ export default function ProductPage() {
 
   return (
     <div className="max-w-6xl mx-auto px-4 py-10">
-      {/* 🔹 Product Layout (2 Columns) */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
-        {/* Product Image */}
-        <div className="flex flex-col gap-4">
-          <img
-            src={product.images[0]}
-            alt={product.name}
-            className="rounded-xl object-cover w-full h-[400px]"
-          />
-          <div className="text-sm text-gray-500 text-center">
-            {product.gstIncluded ? "GST Included" : "GST Extra"} •{" "}
-            {product.courierExtra ? "Courier Charges Extra" : "Free Delivery"}
+        {/* Product Images */}
+        <div className="flex gap-4">
+
+          {/* Thumbnails */}
+          <div className="flex flex-col gap-3 overflow-y-auto max-h-[400px] pr-2">
+            {currentImages.map((img: string, index: number) => (
+              <button
+                key={img + index}
+                onClick={() => setSelectedImage(img)}
+                className={`border-2 rounded-lg overflow-hidden transition ${
+                  selectedImage === img ? "border-green-600" : "border-gray-200"
+                }`}
+              >
+                <img
+                  src={img}
+                  alt={`Thumbnail ${index + 1}`}
+                  className="w-20 h-20 object-contain bg-white p-1 hover:opacity-90"
+                />
+              </button>
+            ))}
+          </div>
+
+          {/* Main Image */}
+          <div className="flex-1 flex items-center justify-center border rounded-xl overflow-hidden bg-white">
+            <img
+              src={selectedImage || currentImages[0]}
+              alt={product.name}
+              className="max-h-[400px] w-auto object-contain"
+            />
           </div>
         </div>
 
@@ -101,7 +137,7 @@ export default function ProductPage() {
               {product.variants.map((variant: any) => (
                 <button
                   key={variant._id}
-                  onClick={() => setSelectedVariant(variant)}
+                  onClick={() => handleVariantSelect(variant)}
                   className={`px-4 py-2 rounded border ${
                     selectedVariant?._id === variant._id
                       ? "border-green-600 bg-green-50 text-green-800"
@@ -126,7 +162,7 @@ export default function ProductPage() {
             )}
           </div>
 
-          {/* Buttons Row: Buy Now + Add to Cart */}
+          {/* Buttons */}
           <div className="flex gap-3 mt-4">
             <button
               className="flex-1 bg-green-700 text-white py-3 rounded-md text-lg hover:bg-green-800 transition"
@@ -147,7 +183,7 @@ export default function ProductPage() {
         </div>
       </div>
 
-      {/* 🔹 Recommended Products Section (Full Width) */}
+      {/* Recommended Products */}
       <div className="mt-16">
         <RecommendedProducts
           categoryId={product.category}

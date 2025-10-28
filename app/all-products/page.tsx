@@ -101,12 +101,14 @@ export default function ProductPage() {
               onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
-              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
+              {/* Product Image */}
+              <div className="relative w-full h-64 bg-white flex items-center justify-center overflow-hidden rounded-t-2xl">
                 <Image
                   src={product.images?.[0] || placeholderImage}
                   alt={product.name || "Product"}
-                  fill
-                  className="object-cover"
+                  width={300}
+                  height={300}
+                  className="object-contain w-auto h-full transition-transform duration-300 hover:scale-105"
                 />
                 <div className="absolute top-2 left-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full shadow">
                   ⭐ Best Seller
