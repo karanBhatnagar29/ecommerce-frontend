@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useCallback, useMemo } from "react";
 import Link from "next/link";
 import { usePathname, useRouter } from "next/navigation";
 import { Search, ShoppingCart, User, Menu, X } from "lucide-react";
@@ -19,6 +19,7 @@ type Category = {
 const Header = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [isScrolled, setIsScrolled] = useState(false);
   const pathname = usePathname();
   const router = useRouter();
   const { count } = useCart();
@@ -27,7 +28,8 @@ const Header = () => {
     const fetchCategories = async () => {
       try {
         const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/categories`
+          `${process.env.NEXT_PUBLIC_BASE_URL}/categories`,
+          { next: { revalidate: 3600 } }
         );
         const data = await res.json();
         setCategories(data);
@@ -38,8 +40,18 @@ const Header = () => {
     fetchCategories();
   }, []);
 
+  useEffect(() => {
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 0);
+    };
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
+  }, []);
+
   return (
-    <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
+    <header className={`border-b border-gray-200 bg-white sticky top-0 z-50 smooth-transition ${
+      isScrolled ? "shadow-md-soft" : ""
+    }`}>
       <div className="container mx-auto px-4 flex h-16 items-center justify-center relative">
         {/* Mobile Menu Button */}
         <div className="md:hidden absolute left-4 flex items-center">

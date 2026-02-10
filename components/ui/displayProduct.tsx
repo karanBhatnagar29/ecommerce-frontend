@@ -23,14 +23,22 @@ type Product = {
 const ProductGrid = () => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/spices`
-      );
-      const data = await res.json();
-      setProducts(data);
+      try {
+        const res = await fetch(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/spices`,
+          { next: { revalidate: 3600 } }
+        );
+        const data = await res.json();
+        setProducts(data);
+      } catch (error) {
+        console.error("Failed to fetch products:", error);
+      } finally {
+        setIsLoading(false);
+      }
     };
 
     fetchData();
@@ -65,16 +73,18 @@ const ProductGrid = () => {
           return (
             <Card
               key={product._id}
-              className="bg-white rounded-2xl shadow hover:shadow-md border border-gray-200 hover:border-gray-300 transition-all duration-300 flex flex-col overflow-hidden cursor-pointer"
+              className="bg-white rounded-2xl shadow-md-soft hover:shadow-lg border border-gray-200 hover:border-orange-300 smooth-transition flex flex-col overflow-hidden cursor-pointer group"
               onClick={() => router.push(`/product/${product._id}`)}
             >
               {/* Product Image */}
-              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl">
+              <div className="relative w-full h-64 bg-gray-50 flex items-center justify-center overflow-hidden rounded-t-2xl group-hover:bg-gray-100 smooth-transition">
                 <Image
                   src={product.images?.[0] || placeholderImage}
                   alt={product.name || "Product"}
                   fill
-                  className="object-cover"
+                  loading="lazy"
+                  quality={85}
+                  className="object-cover group-hover:scale-105 smooth-transition"
                 />
                 <div className="absolute top-2 left-2 bg-emerald-600 text-white text-xs px-2 py-1 rounded-full shadow">
                   ⭐ Best Seller
