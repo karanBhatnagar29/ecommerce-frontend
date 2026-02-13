@@ -50,7 +50,7 @@ export default function HeroCarousel() {
   }
 
   return (
-    <section className="relative h-[70vh] w-full overflow-hidden">
+    <section className="relative h-[60vh] md:h-[70vh] w-full overflow-hidden bg-background">
       {/* Slides */}
       {heroSlides.map((slide, index) => (
         <div
@@ -63,20 +63,24 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className="object-cover brightness-[0.6]"
+            className="object-cover brightness-[0.5] hover:brightness-[0.55] transition-all duration-300"
           />
         </div>
       ))}
 
       {/* Content Overlay */}
       <div className="relative z-20 h-full w-full flex items-center justify-center text-white px-4">
-        <div className="max-w-2xl text-center space-y-6">
-          <h1 className="text-4xl md:text-6xl font-bold leading-tight">
+        <div className="max-w-3xl text-center space-y-6">
+          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight text-balance">
             {heroSlides[currentSlide].title}
           </h1>
 
+          <p className="text-base md:text-lg text-white/80 max-w-xl mx-auto">
+            Discover our latest collection with premium quality and exclusive designs
+          </p>
+
           <Button
-            className="mt-4 bg-gradient-to-r from-red-500 to-orange-500 hover:from-red-600 hover:to-orange-600 px-8 py-3 text-lg text-white"
+            className="mt-6 bg-accent hover:bg-accent/90 px-8 py-3 text-base font-semibold text-accent-foreground rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
             onClick={() => router.push("/all-products")}
           >
             Shop Now <ArrowRight className="ml-2 h-5 w-5" />
@@ -87,26 +91,29 @@ export default function HeroCarousel() {
       {/* Arrows */}
       <button
         onClick={prevSlide}
-        className="absolute left-4 top-1/2 z-30 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 text-white"
+        className="absolute left-4 md:left-8 top-1/2 z-30 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300"
+        aria-label="Previous slide"
       >
         <ChevronLeft className="w-6 h-6" />
       </button>
       <button
         onClick={nextSlide}
-        className="absolute right-4 top-1/2 z-30 -translate-y-1/2 p-2 rounded-full bg-white/20 hover:bg-white/40 text-white"
+        className="absolute right-4 md:right-8 top-1/2 z-30 -translate-y-1/2 p-2 rounded-full bg-white/10 hover:bg-white/30 text-white transition-all duration-300"
+        aria-label="Next slide"
       >
         <ChevronRight className="w-6 h-6" />
       </button>
 
       {/* Indicators */}
-      <div className="absolute bottom-6 left-1/2 z-30 -translate-x-1/2 flex gap-2">
+      <div className="absolute bottom-8 left-1/2 z-30 -translate-x-1/2 flex gap-3">
         {heroSlides.map((_, index) => (
           <button
             key={index}
             onClick={() => goToSlide(index)}
-            className={`h-2 w-2 rounded-full transition-all duration-300 ${
-              index === currentSlide ? "bg-white" : "bg-white/40"
+            className={`h-2 transition-all duration-300 rounded-full ${
+              index === currentSlide ? "bg-accent w-8" : "bg-white/40 w-2 hover:bg-white/60"
             }`}
+            aria-label={`Go to slide ${index + 1}`}
           />
         ))}
       </div>

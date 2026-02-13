@@ -180,63 +180,82 @@ export default function AccountPage() {
       {/* Razorpay script */}
       <Script src="https://checkout.razorpay.com/v1/checkout.js" />
 
-      <div className="bg-gray-50 min-h-screen py-10 px-4 md:px-8">
-        <div className="max-w-6xl mx-auto">
+      <div className="bg-background min-h-screen py-8 md:py-12 px-4 md:px-8">
+        <div className="max-w-7xl mx-auto">
           {/* Header */}
-          <div className="flex justify-between items-center mb-10">
-            <h1 className="text-3xl md:text-4xl font-bold text-gray-800">
-              My Account
-            </h1>
+          <div className="flex justify-between items-center mb-8 border-b border-border pb-6">
+            <div>
+              <h1 className="text-3xl md:text-4xl font-bold text-foreground">
+                My Account
+              </h1>
+              <p className="text-muted-foreground mt-2">Manage your profile and orders</p>
+            </div>
             <button
               onClick={handleLogout}
-              className="flex items-center gap-2 text-red-600 hover:text-red-700 font-semibold"
+              className="flex items-center gap-2 bg-secondary hover:bg-secondary/80 text-foreground px-4 py-2 rounded-lg font-semibold transition-colors"
             >
-              <ArrowRightOnRectangleIcon className="w-6 h-6" /> Logout
+              <ArrowRightOnRectangleIcon className="w-5 h-5" />
+              <span className="hidden sm:inline">Logout</span>
             </button>
           </div>
 
-          <div className="flex flex-col md:flex-row gap-6">
-            {/* Sidebar */}
-            <div className="w-full md:w-1/4 space-y-4">
-              <div
-                onClick={() => setActiveTab("profile")}
-                className={`p-4 rounded-lg text-center cursor-pointer font-semibold transition ${
-                  activeTab === "profile"
-                    ? "bg-yellow-400 text-white shadow"
-                    : "bg-white hover:bg-gray-100 border"
-                }`}
-              >
-                Personal Information
-              </div>
-              <div
-                onClick={() => setActiveTab("orders")}
-                className={`p-4 rounded-lg text-center cursor-pointer font-semibold transition ${
-                  activeTab === "orders"
-                    ? "bg-yellow-400 text-white shadow"
-                    : "bg-white hover:bg-gray-100 border"
-                }`}
-              >
-                My Orders
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Sidebar Navigation */}
+            <div className="md:col-span-1">
+              <div className="bg-card border border-border rounded-lg p-4 sticky top-24">
+                <h3 className="text-sm uppercase font-bold text-muted-foreground tracking-wider mb-4">
+                  Menu
+                </h3>
+                <nav className="space-y-2">
+                  {[
+                    { id: "profile", label: "Dashboard", icon: "📊" },
+                    { id: "orders", label: "My Orders", icon: "📦" },
+                    { id: "addresses", label: "Addresses", icon: "📍" },
+                    { id: "settings", label: "Settings", icon: "⚙️" },
+                  ].map((item) => (
+                    <button
+                      key={item.id}
+                      onClick={() => setActiveTab(item.id)}
+                      className={`w-full text-left px-4 py-3 rounded-lg transition-colors font-medium ${
+                        activeTab === item.id
+                          ? "bg-accent text-accent-foreground"
+                          : "text-foreground hover:bg-secondary"
+                      }`}
+                    >
+                      <span className="inline-block mr-2">{item.icon}</span>
+                      {item.label}
+                    </button>
+                  ))}
+                </nav>
               </div>
             </div>
 
-            {/* Main content */}
-            <div className="w-full md:w-3/4">
+            {/* Main Content */}
+            <div className="md:col-span-3">
+              {/* Profile Tab */}
               {activeTab === "profile" && (
-                <div className="space-y-8 bg-white p-6 rounded-xl shadow-sm">
-                  <div className="flex items-center gap-4">
-                    <UserCircleIcon className="w-20 h-20 text-green-600" />
-                    <div>
-                      <h2 className="text-2xl font-semibold text-gray-800">
-                        {user.username}
-                      </h2>
-                      <p className="text-sm text-gray-500">
-                        Welcome to your dashboard
-                      </p>
+                <div className="space-y-6">
+                  {/* User Card */}
+                  <div className="bg-card border border-border rounded-lg p-6">
+                    <div className="flex items-start gap-4">
+                      <div className="flex-shrink-0">
+                        <div className="flex items-center justify-center w-16 h-16 rounded-full bg-accent/10">
+                          <UserCircleIcon className="w-10 h-10 text-accent" />
+                        </div>
+                      </div>
+                      <div className="flex-1">
+                        <h2 className="text-2xl font-bold text-foreground">
+                          {user.username}
+                        </h2>
+                        <p className="text-muted-foreground mt-1">
+                          Welcome back to your dashboard
+                        </p>
+                      </div>
                     </div>
                   </div>
 
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6 border-t pt-6">
+                  {/* User Details */}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                     <Info label="Username" value={user.username} />
                     <Info label="Email" value={user.email} />
                     <Info label="Phone" value={user.phone} />
@@ -245,45 +264,74 @@ export default function AccountPage() {
                 </div>
               )}
 
+              {/* Orders Tab */}
               {activeTab === "orders" && (
-                <div className="mt-6">
-                  <h2 className="text-xl font-semibold mb-4 text-gray-800 flex items-center gap-2">
-                    <ShoppingBagIcon className="w-6 h-6 text-yellow-500" />
-                    My Orders
-                  </h2>
+                <div className="space-y-6">
+                  <div className="flex items-center gap-2 mb-6">
+                    <ShoppingBagIcon className="w-6 h-6 text-accent" />
+                    <h2 className="text-2xl font-bold text-foreground">My Orders</h2>
+                  </div>
+
                   {orders.length === 0 ? (
-                    <p className="text-gray-500">No orders found.</p>
+                    <div className="bg-card border border-border rounded-lg p-12 text-center">
+                      <ShoppingBagIcon className="w-12 h-12 text-muted-foreground mx-auto mb-3 opacity-40" />
+                      <p className="text-muted-foreground">No orders found yet.</p>
+                    </div>
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       {orders.map((order) => (
                         <div
                           key={order._id}
-                          className="p-6 border border-gray-200 rounded-xl bg-white shadow-sm"
+                          className="bg-card border border-border rounded-lg overflow-hidden hover:shadow-lg transition-shadow"
                         >
                           {/* Order Header */}
-                          <div className="flex flex-col md:flex-row md:items-center md:justify-between mb-4">
-                            <p className="text-sm text-gray-500">
-                              <strong>Order ID:</strong> {order._id}
-                            </p>
-                            <p
-                              className={`text-sm font-semibold ${
-                                order.status === "pending"
-                                  ? "text-yellow-600"
-                                  : order.status === "delivered"
-                                  ? "text-green-600"
-                                  : "text-gray-600"
-                              }`}
-                            >
-                              {order.status.toUpperCase()}
-                            </p>
+                          <div className="px-6 py-4 border-b border-border">
+                            <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                              <div>
+                                <p className="text-xs uppercase text-muted-foreground font-semibold">
+                                  ORDER PLACED
+                                </p>
+                                <p className="text-foreground font-medium mt-1">
+                                  {new Date(order.createdAt).toLocaleDateString()}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs uppercase text-muted-foreground font-semibold">
+                                  TOTAL AMOUNT
+                                </p>
+                                <p className="text-foreground font-bold text-lg mt-1">
+                                  ₹{order.totalPrice.toLocaleString("en-IN")}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs uppercase text-muted-foreground font-semibold">
+                                  SHIP TO
+                                </p>
+                                <p className="text-foreground font-medium mt-1">
+                                  {order.shippingInfo.city}
+                                </p>
+                              </div>
+                              <div>
+                                <p className="text-xs uppercase text-muted-foreground font-semibold">
+                                  ORDER STATUS
+                                </p>
+                                <p
+                                  className={`font-bold uppercase text-sm mt-1 ${
+                                    order.status === "pending"
+                                      ? "text-yellow-600"
+                                      : order.status === "delivered"
+                                      ? "text-accent"
+                                      : "text-muted-foreground"
+                                  }`}
+                                >
+                                  {order.status}
+                                </p>
+                              </div>
+                            </div>
                           </div>
-                          <p className="text-sm text-gray-500">
-                            <strong>Placed on:</strong>{" "}
-                            {new Date(order.createdAt).toLocaleDateString()}
-                          </p>
 
-                          {/* Products */}
-                          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mt-4">
+                          {/* Order Items */}
+                          <div className="px-6 py-4 space-y-3 max-h-64 overflow-y-auto">
                             {order.products.map((item, idx) => {
                               const product = item.productId;
                               const variant = product.variants.find(
@@ -292,31 +340,23 @@ export default function AccountPage() {
                               return (
                                 <div
                                   key={idx}
-                                  className="flex gap-4 border p-3 rounded-lg bg-gray-50"
+                                  className="flex gap-4 p-3 bg-secondary rounded-lg"
                                 >
                                   <img
                                     src={product.images[0]}
                                     alt={product.name}
-                                    className="w-20 h-20 object-cover rounded"
+                                    className="w-16 h-16 object-cover rounded border border-border"
                                   />
-                                  <div>
-                                    <h3 className="font-semibold text-gray-800">
+                                  <div className="flex-1">
+                                    <p className="font-semibold text-foreground line-clamp-1">
                                       {product.name}
-                                    </h3>
-                                    <p className="text-sm text-gray-500">
-                                      Brand: {product.brand}
                                     </p>
-                                    <p className="text-sm text-gray-500">
-                                      Variant: {item.variantLabel}
+                                    <p className="text-xs text-muted-foreground">
+                                      {item.variantLabel} · Qty: {item.quantity}
                                     </p>
-                                    <p className="text-sm text-gray-500">
-                                      Qty: {item.quantity}
-                                    </p>
-                                    <p className="text-sm text-gray-700 font-medium">
-                                      ₹{variant?.price || "-"} x {item.quantity}{" "}
-                                      = ₹
-                                      {variant?.price
-                                        ? variant.price * item.quantity
+                                    <p className="text-sm font-bold text-foreground mt-1">
+                                      ₹{variant?.price
+                                        ? (variant.price * item.quantity).toLocaleString("en-IN")
                                         : "-"}
                                     </p>
                                   </div>
@@ -325,35 +365,28 @@ export default function AccountPage() {
                             })}
                           </div>
 
-                          {/* Footer */}
-                          <div className="mt-4 text-right font-bold text-gray-800">
-                            Total: ₹{order.totalPrice}
-                          </div>
-                          <div className="text-sm text-gray-600 mt-2 space-y-1">
-                        
-                            <p>
-                              <strong>Shipping:</strong>{" "}
-                              {order.shippingInfo.shippingAddress},{" "}
-                              {order.shippingInfo.city},{" "}
-                              {order.shippingInfo.state} -{" "}
-                              {order.shippingInfo.pincode}
-                            </p>
-                            {order.couponCode && (
+                          {/* Order Footer */}
+                          <div className="px-6 py-4 border-t border-border flex items-center justify-between">
+                            <div className="text-sm text-muted-foreground">
                               <p>
-                                <strong>Coupon Applied:</strong>{" "}
-                                {order.couponCode}
+                                <strong>Order ID:</strong> {order._id.slice(-8).toUpperCase()}
                               </p>
-                            )}
-                            {order.orderNotes && (
-                              <p>
-                                <strong>Note:</strong> {order.orderNotes}
-                              </p>
-                            )}
+                            </div>
+                            <button className="px-4 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium text-sm transition-colors">
+                              TRACK PACKAGE
+                            </button>
                           </div>
                         </div>
                       ))}
                     </div>
                   )}
+                </div>
+              )}
+
+              {/* Placeholder for other tabs */}
+              {(activeTab === "addresses" || activeTab === "settings") && (
+                <div className="bg-card border border-border rounded-lg p-12 text-center">
+                  <p className="text-muted-foreground">Feature coming soon</p>
                 </div>
               )}
             </div>
@@ -366,9 +399,11 @@ export default function AccountPage() {
 
 function Info({ label, value }: { label: string; value: string }) {
   return (
-    <div>
-      <p className="text-sm text-gray-500 mb-1">{label}</p>
-      <p className="text-lg text-gray-800 font-medium">{value || "-"}</p>
+    <div className="bg-card border border-border rounded-lg p-4">
+      <p className="text-xs uppercase font-semibold text-muted-foreground tracking-wider mb-2">
+        {label}
+      </p>
+      <p className="text-lg font-medium text-foreground">{value || "-"}</p>
     </div>
   );
 }

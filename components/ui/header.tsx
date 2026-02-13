@@ -38,10 +38,15 @@ const Header = () => {
   }, []);
 
   return (
-    <header className="border-b border-gray-200 bg-white sticky top-0 z-50">
-      <div className="container mx-auto px-4 flex h-16 items-center justify-center relative">
+    <header className="border-b border-border bg-background sticky top-0 z-50">
+      {/* Top banner */}
+      <div className="bg-muted py-2 px-4 text-center text-xs sm:text-sm font-medium text-muted-foreground">
+        FREE SHIPPING THIS WEEK: ORDER OVER ₹5000
+      </div>
+
+      <div className="container mx-auto px-4 flex h-16 items-center justify-between">
         {/* Mobile Menu Button */}
-        <div className="md:hidden absolute left-4 flex items-center">
+        <div className="md:hidden">
           <Button
             variant="ghost"
             size="icon"
@@ -54,55 +59,27 @@ const Header = () => {
         {/* Logo */}
         <Link
           href="/"
-          className="flex items-center space-x-2 absolute left-1/2 -translate-x-1/2 md:static md:translate-x-0"
+          className="flex items-center space-x-2"
         >
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-red-500 to-orange-500">
-            <span className="text-sm font-bold text-white">Z</span>
-          </div>
-          <span className="text-lg font-semibold text-gray-800">
-            Zesty Crops
+          <span className="text-2xl font-bold text-foreground">
+            Anon
           </span>
         </Link>
 
-        {/* Desktop Categories */}
-        <nav className="hidden md:flex items-center space-x-5 text-sm font-medium ml-6">
-          <Link
-            href="/all-products"
-            className={`whitespace-nowrap ${
-              pathname === "/all-products"
-                ? "text-red-600 font-semibold"
-                : "text-gray-700 hover:text-red-600 transition-colors"
-            }`}
-          >
-            All products
-          </Link>
-          {categories.map((cat) => (
-            <Link
-              key={cat._id}
-              href={`/category/${encodeURIComponent(cat.slug)}`}
-              className={`whitespace-nowrap ${
-                pathname === `/category/${cat.slug}`
-                  ? "text-red-600 font-semibold"
-                  : "text-gray-700 hover:text-red-600 transition-colors"
-              }`}
-            >
-              {cat.name}
-            </Link>
-          ))}
-        </nav>
-
-        {/* Right: Search + Icons */}
-        <div className="absolute right-4 flex items-center space-x-2 md:static md:space-x-4">
-          {/* Search (Desktop only) */}
-          <div className="relative hidden md:block">
-            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-gray-400" />
+        {/* Desktop Search */}
+        <div className="hidden md:flex flex-1 max-w-lg mx-6">
+          <div className="relative w-full">
+            <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
             <Input
               type="search"
-              placeholder="Search spices..."
-              className="w-56 pl-10 pr-4"
+              placeholder="Enter your product name..."
+              className="w-full pl-10 pr-4 bg-secondary border-border text-foreground placeholder:text-muted-foreground"
             />
           </div>
+        </div>
 
+        {/* Right: Icons */}
+        <div className="flex items-center space-x-2 sm:space-x-4">
           {/* Account */}
           <Button
             variant="ghost"
@@ -111,8 +88,20 @@ const Header = () => {
               const token = Cookies.get("token");
               router.push(token ? "/account" : "/auth/login");
             }}
+            className="text-foreground"
           >
             <User className="h-5 w-5" />
+          </Button>
+
+          {/* Wishlist */}
+          <Button
+            variant="ghost"
+            size="icon"
+            className="text-foreground"
+          >
+            <svg className="h-5 w-5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+            </svg>
           </Button>
 
           {/* Cart */}
@@ -120,14 +109,25 @@ const Header = () => {
             variant="ghost"
             size="icon"
             onClick={() => router.push("/cart")}
-            className="relative"
+            className="relative text-foreground"
           >
             <ShoppingCart className="h-5 w-5" />
             {count > 0 && (
-              <span className="absolute -right-1 -top-1 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-xs text-white">
+              <span className="absolute -right-2 -top-2 flex h-5 w-5 items-center justify-center rounded-full bg-accent text-xs text-accent-foreground font-semibold">
                 {count}
               </span>
             )}
+          </Button>
+
+          {/* Language Selector */}
+          <Button
+            variant="ghost"
+            className="hidden sm:flex items-center space-x-1 text-foreground text-sm"
+          >
+            <span>ENG</span>
+            <svg className="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M19 14l-7 7m0 0l-7-7m7 7V3" />
+            </svg>
           </Button>
         </div>
       </div>
@@ -139,7 +139,7 @@ const Header = () => {
             className="fixed inset-0 bg-black/40"
             onClick={() => setMobileMenuOpen(false)}
           ></div>
-          <div className="relative w-64 bg-white shadow-lg z-50 p-4 flex flex-col">
+          <div className="relative w-72 bg-background shadow-lg z-50 p-4 flex flex-col border-r border-border">
             <Button
               variant="ghost"
               size="icon"
@@ -148,13 +148,24 @@ const Header = () => {
             >
               <X className="h-5 w-5" />
             </Button>
-            <nav className="mt-8 flex flex-col space-y-4">
+            <div className="mt-8 mb-4">
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+                <Input
+                  type="search"
+                  placeholder="Search..."
+                  className="w-full pl-10 pr-4 bg-secondary border-border"
+                  onClick={() => setMobileMenuOpen(false)}
+                />
+              </div>
+            </div>
+            <nav className="flex flex-col space-y-3">
               <Link
                 href="/all-products"
-                className={`${
+                className={`font-medium transition-colors ${
                   pathname === "/all-products"
-                    ? "text-red-600 font-semibold"
-                    : "text-gray-700 hover:text-red-600"
+                    ? "text-accent"
+                    : "text-foreground hover:text-accent"
                 }`}
                 onClick={() => setMobileMenuOpen(false)}
               >
@@ -164,10 +175,10 @@ const Header = () => {
                 <Link
                   key={cat._id}
                   href={`/category/${encodeURIComponent(cat.slug)}`}
-                  className={`${
+                  className={`font-medium transition-colors ${
                     pathname === `/category/${cat.slug}`
-                      ? "text-red-600 font-semibold"
-                      : "text-gray-700 hover:text-red-600"
+                      ? "text-accent"
+                      : "text-foreground hover:text-accent"
                   }`}
                   onClick={() => setMobileMenuOpen(false)}
                 >
