@@ -16,6 +16,8 @@ type Category = {
   description?: string;
 };
 
+import axiosInstance from "@/lib/axiosInstance";
+
 const Header = () => {
   const [categories, setCategories] = useState<Category[]>([]);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -26,11 +28,8 @@ const Header = () => {
   useEffect(() => {
     const fetchCategories = async () => {
       try {
-        const res = await fetch(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/categories`
-        );
-        const data = await res.json();
-        setCategories(data);
+        const res = await axiosInstance.get("/categories");
+        setCategories(res.data);
       } catch (error) {
         console.error("Failed to fetch categories", error);
       }

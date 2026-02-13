@@ -39,12 +39,12 @@ export default function RecommendedProducts({
     async function fetchRecommended() {
       try {
         const categoryRes = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/categories/${categoryId}`
+          `/categories/${categoryId}`
         );
         const slug = categoryRes.data.slug;
 
         const res = await axiosInstance.get(
-          `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/${slug}`
+          `/product/category/${slug}`
         );
 
         const filtered = res.data.filter(

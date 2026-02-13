@@ -20,17 +20,20 @@ type Product = {
   variants?: { label: string; price: number }[];
 };
 
+import axiosInstance from "@/lib/axiosInstance";
+
 const ProductGrid = () => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
 
   useEffect(() => {
     const fetchData = async () => {
-      const res = await fetch(
-        `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/spices`
-      );
-      const data = await res.json();
-      setProducts(data);
+        try {
+            const res = await axiosInstance.get("/product/category/spices");
+            setProducts(res.data);
+        } catch (error) {
+            console.error("Failed to fetch products", error);
+        }
     };
 
     fetchData();

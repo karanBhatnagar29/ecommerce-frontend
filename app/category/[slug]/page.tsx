@@ -20,6 +20,7 @@ export default function CategorySlugPage() {
   const [categories, setCategories] = useState<Category[]>([]);
   const [products, setProducts] = useState([]);
   const [allProducts, setAllProducts] = useState([]);
+  const [banner, setBanner] = useState<string | null>(null);
   const router = useRouter();
   const params = useParams();
   const slug = decodeURIComponent(params?.slug as string);
@@ -27,17 +28,26 @@ export default function CategorySlugPage() {
   useEffect(() => {
     const fetchData = async () => {
       try {
-        const [catRes, prodRes, allProdRes] = await Promise.all([
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/categories`),
+        const [catRes, prodRes, allProdRes, bannerRes] = await Promise.all([
+          axiosInstance.get("/categories"),
           axiosInstance.get(
-            `${process.env.NEXT_PUBLIC_BASE_URL}/product/category/${slug}`
+            `/product/category/${slug}`
           ),
-          axiosInstance.get(`${process.env.NEXT_PUBLIC_BASE_URL}/product`),
+          axiosInstance.get("/product"),
+          axiosInstance.get(`/banner/category/${encodeURIComponent(slug)}`) 
         ]);
+
+        console.log("Banner response:", bannerRes.data);
 
         setCategories(catRes.data);
         setProducts(prodRes.data);
         setAllProducts(allProdRes.data);
+
+        if (bannerRes.data && bannerRes.data.length > 0) {
+            setBanner(bannerRes.data[0].image);
+        } else {
+            setBanner(null);
+        }
 
         const firstProductId = allProdRes.data?.[0]?._id;
         if (firstProductId) {
@@ -69,12 +79,14 @@ export default function CategorySlugPage() {
       {/* Banner */}
       <div className="w-full h-40 md:h-56 rounded-xl overflow-hidden bg-gray-200 mb-6 flex items-center justify-center text-gray-500 text-xl font-medium">
         <img
-          src={`/category-banner/${slug}.webp`}
+          src={banner || `/category-banner/${slug}.webp`}
           alt={`${slug} banner`}
           className="object-cover w-full h-full"
           onError={(e) => {
-            (e.target as HTMLImageElement).src =
-              "/category-banner/default_category.jpg";
+            if (!banner) {
+               (e.target as HTMLImageElement).src =
+               "/category-banner/default_category.jpg";
+            }
           }}
         />
       </div>
