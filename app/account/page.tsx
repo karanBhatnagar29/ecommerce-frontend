@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import Cookies from "js-cookie";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import {
   UserCircleIcon,
   ArrowRightOnRectangleIcon,
@@ -10,6 +10,14 @@ import {
 } from "@heroicons/react/24/solid";
 import axiosInstance from "@/lib/axiosInstance";
 import Script from "next/script";
+
+interface ShippingInfo {
+  shippingAddress: string;
+  phone: string;
+  city: string;
+  state: string;
+  pincode: string;
+}
 
 interface User {
   _id: string;
@@ -38,15 +46,6 @@ interface OrderProduct {
   variantLabel?: string;
 }
 
-interface ShippingInfo {
-  shippingAddress: string;
-  phone: string;
-  city: string;
-  state: string;
-  pincode: string;
-  deliveryInstructions?: string;
-}
-
 interface Order {
   _id: string;
   products: OrderProduct[];
@@ -54,6 +53,10 @@ interface Order {
   status: string;
   createdAt: string;
   shippingInfo: ShippingInfo;
+  shippingDetails?: {
+    trackingNumber?: string;
+    courier?: string;
+  };
   couponCode?: string;
   orderNotes?: string;
   paymentInfo?: {
@@ -67,7 +70,7 @@ export default function AccountPage() {
   const [user, setUser] = useState<User | null>(null);
   const [orders, setOrders] = useState<Order[]>([]);
   const [loading, setLoading] = useState(true);
-  const [activeTab, setActiveTab] = useState("profile");
+  const [activeTab, setActiveTab] = useState("dashboard");
   const router = useRouter();
 
   const fetchProfileAndOrders = async () => {
@@ -105,6 +108,17 @@ export default function AccountPage() {
     Cookies.remove("token");
     router.push("/");
   };
+
+  const searchParams = useSearchParams();
+
+  useEffect(() => {
+    const tab = searchParams.get("tab");
+    if (tab === "orders") {
+      setActiveTab("orders");
+    } else if (tab === "settings") {
+      setActiveTab("settings");
+    }
+  }, [searchParams]);
 
   // 🔹 Handle Razorpay payment
   const handlePayment = async (order: Order) => {
@@ -208,9 +222,8 @@ export default function AccountPage() {
                 </h3>
                 <nav className="space-y-2">
                   {[
-                    { id: "profile", label: "Dashboard", icon: "📊" },
+                    { id: "dashboard", label: "Dashboard", icon: "📊" },
                     { id: "orders", label: "My Orders", icon: "📦" },
-                    { id: "addresses", label: "Addresses", icon: "📍" },
                     { id: "settings", label: "Settings", icon: "⚙️" },
                   ].map((item) => (
                     <button
@@ -232,8 +245,8 @@ export default function AccountPage() {
 
             {/* Main Content */}
             <div className="md:col-span-3">
-              {/* Profile Tab */}
-              {activeTab === "profile" && (
+              {/* Dashboard Tab */}
+              {activeTab === "dashboard" && (
                 <div className="space-y-6">
                   {/* User Card */}
                   <div className="bg-card border border-border rounded-lg p-6">
@@ -328,6 +341,34 @@ export default function AccountPage() {
                                 </p>
                               </div>
                             </div>
+                            
+                            {/* Visual Progress Bar */}
+                            <div className="mt-6 flex flex-col md:flex-row items-center justify-between w-full relative">
+                                <div className="absolute top-1/2 left-0 w-full h-1 bg-gray-200 -z-10 hidden md:block" />
+                                {["pending", "confirmed", "processing", "shipped", "delivered"].map((step, index) => {
+                                  
+                                  const steps = ["pending", "confirmed", "processing", "shipped", "delivered"];
+                                  const currentStatusIndex = steps.indexOf(order.status || "pending");
+                                  const stepIndex = steps.indexOf(step);
+                                  const isCompleted = stepIndex <= currentStatusIndex;
+
+                                  return (
+                                    <div key={step} className="flex flex-col items-center bg-card p-2 md:p-0 z-10">
+                                      <div className={`w-8 h-8 rounded-full flex items-center justify-center border-2 ${
+                                        isCompleted ? "bg-accent border-accent text-accent-foreground" : "bg-card border-gray-300 text-gray-400"
+                                      }`}>
+                                        {isCompleted ? "✓" : index + 1}
+                                      </div>
+                                      <span className={`text-xs mt-2 font-medium capitalize ${
+                                        isCompleted ? "text-accent" : "text-muted-foreground"
+                                      }`}>
+                                        {step}
+                                      </span>
+                                    </div>
+                                  );
+                                })}
+                            </div>
+
                           </div>
 
                           {/* Order Items */}
@@ -372,9 +413,16 @@ export default function AccountPage() {
                                 <strong>Order ID:</strong> {order._id.slice(-8).toUpperCase()}
                               </p>
                             </div>
-                            <button className="px-4 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium text-sm transition-colors">
-                              TRACK PACKAGE
-                            </button>
+                            {order.shippingDetails?.trackingNumber && (
+                              <a
+                                href={`https://www.delhivery.com/track/package/${order.shippingDetails.trackingNumber}`}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="px-4 py-2 bg-accent hover:bg-accent/90 text-accent-foreground rounded-lg font-medium text-sm transition-colors text-center"
+                              >
+                                TRACK PACKAGE
+                              </a>
+                            )}
                           </div>
                         </div>
                       ))}
@@ -383,10 +431,10 @@ export default function AccountPage() {
                 </div>
               )}
 
-              {/* Placeholder for other tabs */}
-              {(activeTab === "addresses" || activeTab === "settings") && (
+              {/* Settings Tab */}
+              {activeTab === "settings" && (
                 <div className="bg-card border border-border rounded-lg p-12 text-center">
-                  <p className="text-muted-foreground">Feature coming soon</p>
+                  <p className="text-muted-foreground">Settings feature coming soon</p>
                 </div>
               )}
             </div>

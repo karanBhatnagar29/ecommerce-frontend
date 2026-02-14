@@ -2,6 +2,7 @@
 import { useState } from "react";
 import Cookies from "js-cookie";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 import axiosInstance from "@/lib/axiosInstance";
 
 export default function OtpLoginForm() {
@@ -19,9 +20,9 @@ export default function OtpLoginForm() {
         }
       );
       setStep(2);
-      alert("OTP sent! Check console (dev only)");
+      toast.success("OTP sent! Check console (dev only)");
     } catch (err) {
-      alert("Error sending OTP");
+      toast.error("Error sending OTP");
     }
   };
 
@@ -41,13 +42,13 @@ export default function OtpLoginForm() {
       Cookies.set("token", token, { expires: 1 }); // expires in 1 day
 
       if (isProfileComplete) {
-        alert("Login successful!");
+        toast.success("Login successful!");
         router.push("/");
       } else {
         router.push("/complete-profile");
       }
     } catch (err) {
-      alert("Invalid OTP");
+      toast.error("Invalid OTP");
     }
   };
 

@@ -22,7 +22,7 @@ export default function HeroCarousel() {
   useEffect(() => {
     const fetchBanners = async () => {
         try {
-            const res = await axiosInstance.get("/banner");
+            const res = await axiosInstance.get("/banner?type=home");
             setHeroSlides(res.data);
         } catch (error) {
             console.error("Failed to fetch banners", error);
@@ -63,28 +63,31 @@ export default function HeroCarousel() {
             src={slide.image}
             alt={slide.title}
             fill
-            className="object-cover brightness-[0.5] hover:brightness-[0.55] transition-all duration-300"
+            className="object-cover transition-all duration-300"
           />
         </div>
       ))}
 
       {/* Content Overlay */}
+      {/* Content Overlay */}
       <div className="relative z-20 h-full w-full flex items-center justify-center text-white px-4">
         <div className="max-w-3xl text-center space-y-6">
-          <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight text-balance">
+          {/* <h1 className="text-3xl md:text-5xl lg:text-6xl font-bold leading-tight text-balance">
             {heroSlides[currentSlide].title}
           </h1>
 
           <p className="text-base md:text-lg text-white/80 max-w-xl mx-auto">
             Discover our latest collection with premium quality and exclusive designs
-          </p>
+          </p> */}
 
-          <Button
-            className="mt-6 bg-accent hover:bg-accent/90 px-8 py-3 text-base font-semibold text-accent-foreground rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
-            onClick={() => router.push("/all-products")}
-          >
-            Shop Now <ArrowRight className="ml-2 h-5 w-5" />
-          </Button>
+          <div className="pt-32">
+             <Button
+                className="bg-accent hover:bg-accent/90 px-8 py-3 text-base font-semibold text-accent-foreground rounded-full transition-all duration-300 shadow-lg hover:shadow-xl"
+                onClick={() => router.push("/all-products")}
+              >
+                Shop Now <ArrowRight className="ml-2 h-5 w-5" />
+              </Button>
+          </div>
         </div>
       </div>
 

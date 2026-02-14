@@ -82,6 +82,36 @@ export default function CheckoutPage() {
     fetchProduct();
   }, [productId, cartItems.length]);
 
+  // ✅ Fetch User Address (Auto-Fill)
+  useEffect(() => {
+    if (!token) return;
+    const fetchUserProfile = async () => {
+      try {
+        // Assuming there is an endpoint to get user profile (usually /auth/profile or /user/profile)
+        // I'll try /auth/profile first as per common NestJS patterns in this project, or /user/profile
+        const res = await axiosInstance.get(
+          `${process.env.NEXT_PUBLIC_BASE_URL}/user/profile`, 
+          { headers: { Authorization: `Bearer ${token}` } }
+        );
+        
+        if (res.data && res.data.defaultShippingInfo) {
+          const saved = res.data.defaultShippingInfo;
+          setShipping((prev) => ({
+            ...prev,
+            ...saved,
+          }));
+          // Trigger validation or state load if needed
+          if (saved.stateISO2 && saved.state) {
+             onStateChange(saved.stateISO2, saved.state);
+          }
+        }
+      } catch (error) {
+        console.error("Failed to fetch user profile:", error);
+      }
+    };
+    fetchUserProfile();
+  }, [token]);
+
   // ✅ Fetch states list from API
   useEffect(() => {
     const fetchStates = async () => {
@@ -120,20 +150,35 @@ export default function CheckoutPage() {
   };
 
   // ✅ Live validations
+  // ✅ Live validations
   const validateField = (field: string, value: string) => {
     let msg = "";
     if (field === "name" && !value) msg = "Full name is required.";
-    if (field === "phone" && !/^[0-9]{10}$/.test(value))
-      msg = "Enter a valid 10-digit phone.";
+    // Strict Mobile: Starts with 6-9, exactly 10 digits
+    if (field === "phone" && !/^[6-9][0-9]{9}$/.test(value))
+      msg = "Enter a valid 10-digit mobile number.";
     if (field === "city" && !value) msg = "City is required.";
     if (field === "state" && !value) msg = "State is required.";
     if (field === "shippingAddress" && !value) msg = "Address is required.";
+    // Strict Pincode: 6 digits, cannot start with 0
+    if (field === "pincode" && !/^[1-9][0-9]{5}$/.test(value))
+      msg = "Enter a valid 6-digit pincode (cannot start with 0).";
     setErrors((prev: any) => ({ ...prev, [field]: msg }));
   };
 
   const validateForm = () => {
-    Object.entries(shipping).forEach(([k, v]) => validateField(k, v as string));
-    return Object.values(errors).every((err) => !err);
+    const newErrors: any = {};
+    if (!shipping.name) newErrors.name = "Full name is required.";
+    // Strict Mobile
+    if (!/^[6-9][0-9]{9}$/.test(shipping.phone)) newErrors.phone = "Enter a valid 10-digit mobile number.";
+    if (!shipping.city) newErrors.city = "City is required.";
+    if (!shipping.state) newErrors.state = "State is required.";
+    if (!shipping.shippingAddress) newErrors.shippingAddress = "Address is required.";
+    // Strict Pincode
+    if (!/^[1-9][0-9]{5}$/.test(shipping.pincode)) newErrors.pincode = "Enter a valid 6-digit pincode (cannot start with 0).";
+
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
   };
 
   // ✅ Checkout flow
@@ -225,7 +270,10 @@ export default function CheckoutPage() {
                 1
               </div>
               <h2 className="text-xl font-semibold text-foreground">Shipping Address</h2>
-              <button className="ml-auto text-xs text-accent hover:text-accent/80 font-medium">
+              <button 
+                onClick={() => router.push("/account?tab=addresses&action=add")}
+                className="ml-auto text-xs text-accent hover:text-accent/80 font-medium"
+              >
                 + Add New
               </button>
             </div>
@@ -353,18 +401,59 @@ export default function CheckoutPage() {
                     : subtotal.toFixed(2)}
                 </span>
               </div>
+              
               <div className="flex justify-between text-sm">
                 <span className="text-muted-foreground">Shipping</span>
                 <span className="text-accent font-medium">FREE</span>
               </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-muted-foreground">Tax (5%)</span>
-                <span className="text-foreground font-medium">
-                  ₹{(cartItems.length > 0
-                    ? cartItems.reduce((acc, i) => acc + i.subtotal, 0)
-                    : subtotal) * 0.05}.00
-                </span>
-              </div>
+
+              {/* Tax Details Calculation */}
+              {(() => {
+                const totalAmount = cartItems.length > 0
+                  ? cartItems.reduce((acc, i) => acc + i.subtotal, 0)
+                  : subtotal;
+                
+                // GST Exclusive: Tax is 5% ON TOP
+                const taxRate = 0.05; 
+                const totalTax = totalAmount * taxRate;
+                const finalTotal = totalAmount + totalTax;
+
+                // Determine State Logic
+                const sellerStateRaw = process.env.NEXT_PUBLIC_SELLER_STATE || "Rajasthan"; 
+                const customerStateRaw = shipping.state || "";
+                
+                // Normalize
+                const isSameState = customerStateRaw.toLowerCase() === sellerStateRaw.toLowerCase();
+
+                return (
+                  <div className="bg-secondary/30 p-3 rounded-md space-y-2 mt-2">
+                    <p className="text-xs font-semibold text-muted-foreground mb-1">
+                      Tax Breakdown (5% Extra):
+                    </p>
+                    {isSameState ? (
+                      <>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">CGST (2.5%)</span>
+                          <span className="text-foreground">₹{(totalTax / 2).toFixed(2)}</span>
+                        </div>
+                        <div className="flex justify-between text-xs">
+                          <span className="text-muted-foreground">SGST (2.5%)</span>
+                          <span className="text-foreground">₹{(totalTax / 2).toFixed(2)}</span>
+                        </div>
+                      </>
+                    ) : (
+                      <div className="flex justify-between text-xs">
+                        <span className="text-muted-foreground">IGST (5%)</span>
+                        <span className="text-foreground">₹{totalTax.toFixed(2)}</span>
+                      </div>
+                    )}
+                    <div className="flex justify-between text-xs pt-2 border-t border-border/50">
+                      <span className="text-muted-foreground">Tax Amount</span>
+                      <span className="text-foreground">₹{totalTax.toFixed(2)}</span>
+                    </div>
+                  </div>
+                );
+              })()}
             </div>
 
             {/* Total */}

@@ -56,6 +56,7 @@ export default function ProductPage() {
 
   const handleBuyNow = () => {
     if (!product || !selectedVariant) return;
+    sessionStorage.removeItem("cart"); // ✅ Clear cart so checkout uses single product
     sessionStorage.setItem("productId", product._id);
     sessionStorage.setItem("variantLabel", selectedVariant.label);
     router.push("/checkout");
