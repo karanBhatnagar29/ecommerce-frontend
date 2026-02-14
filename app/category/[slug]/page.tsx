@@ -6,6 +6,7 @@ import { Button } from "@/components/ui/button";
 import { useRouter, useParams } from "next/navigation";
 import axiosInstance from "@/lib/axiosInstance";
 import AddToCartButton from "@/lib/cartApi";
+import { useWishlist } from "@/lib/wishlistContext";
 
 const placeholderImage = "/placeholder.png";
 
@@ -24,6 +25,7 @@ export default function CategorySlugPage() {
   const router = useRouter();
   const params = useParams();
   const slug = decodeURIComponent(params?.slug as string);
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -70,8 +72,12 @@ export default function CategorySlugPage() {
     router.push("/checkout");
   };
 
-  const handleAddToWishlist = (product: any) => {
-    console.log("Add to Wishlist:", product.name);
+  const handleWishlistClick = (product: any) => {
+    if (isInWishlist(product._id)) {
+      removeFromWishlist(product._id);
+    } else {
+      addToWishlist(product._id);
+    }
   };
 
   return (
@@ -167,36 +173,65 @@ export default function CategorySlugPage() {
                 </div>
 
                 {/* Action Buttons */}
-                <div className="mt-4 flex justify-between items-center gap-2">
-                  <Button
-                    size="sm"
-                    className="bg-yellow-400 hover:bg-yellow-500 text-white text-xs px-3 flex-1"
+                <div className="mt-4 space-y-2">
+                  {/* Buy Now */}
+                  <button
+                    className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-[0.97]"
                     onClick={(e) => {
                       e.stopPropagation();
                       handleBuyNow(product);
                     }}
                   >
-                    ⚡ Buy Now
-                  </Button>
+                    Buy Now
+                  </button>
 
-                  <div onClick={(e) => e.stopPropagation()}>
-                    <AddToCartButton
-                      productId={product._id}
-                      variantLabel={product.variants?.[0]?.label}
-                    />
+                  {/* Cart + Wishlist */}
+                  <div className="flex gap-2 items-stretch">
+                    <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+                      <AddToCartButton
+                        productId={product._id}
+                        variantLabel={product.variants?.[0]?.label}
+                        fullWidth
+                      />
+                    </div>
+
+                    <button
+                      className={`
+                        relative w-10 rounded-lg border-2 flex items-center justify-center
+                        transition-all duration-300 active:scale-90
+                        ${isInWishlist(product._id)
+                          ? "border-red-400 bg-red-50 text-red-500"
+                          : "border-border hover:border-red-300 hover:bg-red-50/50 text-muted-foreground"
+                        }
+                      `}
+                      onClick={(e) => {
+                        e.stopPropagation();
+                        handleWishlistClick(product);
+                      }}
+                    >
+                      <svg
+                        className={`w-4 h-4 transition-all duration-300 ${
+                          isInWishlist(product._id) ? "scale-110 animate-heart-pop" : "scale-100"
+                        }`}
+                        fill={isInWishlist(product._id) ? "currentColor" : "none"}
+                        stroke="currentColor"
+                        viewBox="0 0 24 24"
+                      >
+                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                      </svg>
+                      {isInWishlist(product._id) && (
+                        <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                          {[...Array(6)].map((_, i) => (
+                            <span
+                              key={i}
+                              className="absolute w-1 h-1 bg-red-400 rounded-full animate-burst-particle"
+                              style={{ '--angle': `${i * 60}deg` } as React.CSSProperties}
+                            />
+                          ))}
+                        </span>
+                      )}
+                    </button>
                   </div>
-
-                  <Button
-                    size="sm"
-                    variant="outline"
-                    className="text-pink-500 border-pink-400 hover:bg-pink-50 text-xs px-3"
-                    onClick={(e) => {
-                      e.stopPropagation();
-                      handleAddToWishlist(product);
-                    }}
-                  >
-                    💖
-                  </Button>
                 </div>
               </div>
             </div>

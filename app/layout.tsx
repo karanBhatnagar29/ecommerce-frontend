@@ -5,6 +5,8 @@ import AnnouncementBar from "@/components/ui/announcement-bar";
 import Header from "@/components/ui/header";
 import Footer from "@/components/ui/footer";
 import { CartProvider } from "@/lib/cartContext";
+import { WishlistProvider } from "@/lib/wishlistContext";
+import { Toaster } from "sonner";
 import WhatsappButton from "@/components/ui/whatsappButton";
 
 const geistSans = Geist({
@@ -33,13 +35,16 @@ export default function RootLayout({
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
         <CartProvider>
-          <div className="flex flex-col min-h-screen">
-            <AnnouncementBar />
-            <Header />
-            <main className="flex-1">{children}</main>
-            <Footer />
-            <WhatsappButton />
-          </div>
+          <WishlistProvider>
+            <div className="flex flex-col min-h-screen">
+              <AnnouncementBar />
+              <Header />
+              <main className="flex-1">{children}</main>
+              <Footer />
+              <WhatsappButton />
+            </div>
+            <Toaster />
+          </WishlistProvider>
         </CartProvider>
       </body>
     </html>

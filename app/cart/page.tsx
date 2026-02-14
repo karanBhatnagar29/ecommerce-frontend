@@ -27,7 +27,9 @@ export default function CartPage() {
     return <p className="text-center py-10">Your cart is empty.</p>;
   }
 
-  const total = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+  const subtotal = cartItems.reduce((acc, item) => acc + item.subtotal, 0);
+  const tax = subtotal * 0.05;
+  const total = subtotal + tax;
 
   return (
     <div className="max-w-7xl mx-auto px-4 py-8 grid grid-cols-1 md:grid-cols-3 gap-8">
@@ -95,14 +97,18 @@ export default function CartPage() {
       {/* Order Summary */}
       <div className="bg-gray-50 border rounded-lg p-6 shadow-sm">
         <h2 className="text-xl font-bold mb-4">Order Summary</h2>
-        <div className="space-y-2 text-sm text-gray-700">
+        <div className="space-y-3 text-sm text-gray-700">
           <div className="flex justify-between">
-            <span>Items ({cartItems.length})</span>
-            <span>₹{total}</span>
+            <span>Subtotal</span>
+            <span>₹{subtotal.toFixed(2)}</span>
           </div>
-          <div className="flex justify-between font-semibold text-lg pt-2 border-t mt-4">
+           <div className="flex justify-between">
+            <span>Estimated Tax (5%)</span>
+            <span>₹{tax.toFixed(2)}</span>
+          </div>
+          <div className="flex justify-between font-semibold text-lg pt-3 border-t mt-3 border-gray-200">
             <span>Total</span>
-            <span>₹{total}</span>
+            <span>₹{total.toFixed(2)}</span>
           </div>
         </div>
         <button

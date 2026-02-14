@@ -12,6 +12,8 @@ interface AddToCartButtonProps {
   variantLabel?: string;
   quantity?: number;
   className?: string;
+  fullWidth?: boolean;
+  showLabel?: boolean;
 }
 
 export default function AddToCartButton({
@@ -19,21 +21,25 @@ export default function AddToCartButton({
   variantLabel,
   quantity = 1,
   className = "",
+  fullWidth = false,
+  showLabel = false,
 }: AddToCartButtonProps) {
   const [loading, setLoading] = useState(false);
   const [success, setSuccess] = useState(false);
-  const [showBanner, setShowBanner] = useState(false); // ✅ banner state
+  const [showBanner, setShowBanner] = useState(false);
   const router = useRouter();
   const { addItem } = useCart();
 
-  const handleAddToCart = async () => {
+  const handleAddToCart = async (e?: React.MouseEvent) => {
+    e?.stopPropagation();
+
     const token = Cookies.get("token");
 
     if (!token) {
-      setShowBanner(true); // show banner
+      setShowBanner(true);
       setTimeout(() => {
-        setShowBanner(false); // hide after 2s
-        router.push("/auth/login"); // redirect
+        setShowBanner(false);
+        router.push("/auth/login");
       }, 2000);
       return;
     }
@@ -57,30 +63,51 @@ export default function AddToCartButton({
 
   return (
     <>
-      {/* ✅ Global Banner */}
+      {/* Login Banner */}
       {showBanner && (
-        <div className="fixed top-0 left-0 w-full z-50 bg-red-600 text-white text-center py-3 font-medium shadow-md">
+        <div className="fixed top-0 left-0 w-full z-50 bg-red-600 text-white text-center py-3 font-medium shadow-md animate-slide-down">
           Please login to continue
         </div>
       )}
 
       {/* Button */}
-      <Button
-        size="sm"
-        variant="outline"
-        className={`text-orange-600 border-orange-400 hover:bg-orange-50 text-xs px-3 ${className}`}
+      <button
+        className={`
+          relative overflow-hidden
+          inline-flex items-center justify-center gap-2
+          rounded-lg border-2 font-semibold
+          transition-all duration-300 ease-out
+          ${fullWidth ? "w-full" : ""}
+          ${success
+            ? "border-green-500 bg-green-50 text-green-600 scale-[0.97]"
+            : "border-accent/30 bg-accent/5 text-accent hover:bg-accent hover:text-accent-foreground hover:border-accent hover:shadow-md active:scale-95"
+          }
+          ${showLabel ? "px-6 py-3 text-base" : "px-4 py-3 text-sm"}
+          disabled:opacity-50 disabled:cursor-not-allowed
+          ${className}
+        `}
         onClick={handleAddToCart}
         disabled={loading}
-        title={success ? "Added to cart" : "Add to cart"}
       >
-        {loading ? (
-          <Loader2 className="w-4 h-4 animate-spin" />
-        ) : success ? (
-          <Check className="w-4 h-4" />
-        ) : (
-          <ShoppingCart className="w-4 h-4" />
+        {/* Success ripple effect */}
+        {success && (
+          <span className="absolute inset-0 animate-ping-once bg-green-400/20 rounded-lg" />
         )}
-      </Button>
+
+        {loading ? (
+          <Loader2 className="w-5 h-5 animate-spin" />
+        ) : success ? (
+          <>
+            <Check className="w-5 h-5 animate-bounce-in" />
+            {showLabel && <span>Added!</span>}
+          </>
+        ) : (
+          <>
+            <ShoppingCart className="w-5 h-5" />
+            {showLabel && <span>Add to Cart</span>}
+          </>
+        )}
+      </button>
     </>
   );
 }

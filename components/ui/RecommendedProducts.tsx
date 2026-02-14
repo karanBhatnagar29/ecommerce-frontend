@@ -113,25 +113,25 @@ export default function RecommendedProducts({
                     ₹{price?.toLocaleString("en-IN")}
                   </p>
 
-                  <div className="mt-4 flex gap-2 w-full">
+                  <div className="mt-4 space-y-2 w-full">
                     <button
                       onClick={(e) => {
-                        e.stopPropagation(); // Prevent redirect
+                        e.stopPropagation();
                         handleBuyNow(product);
                       }}
-                      className="flex-[3] bg-green-700 text-white py-2 rounded-lg hover:bg-green-800 transition flex justify-center items-center"
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-[0.97]"
                     >
                       Buy Now
                     </button>
 
                     <div
-                      className="flex-[1] flex justify-center items-center"
-                      onClick={(e) => e.stopPropagation()} // Prevent redirect
+                      className="w-full"
+                      onClick={(e) => e.stopPropagation()}
                     >
                       <AddToCartButton
-                        className="w-full h-full"
                         productId={product._id}
                         variantLabel={firstVariant?.label}
+                        fullWidth
                       />
                     </div>
                   </div>

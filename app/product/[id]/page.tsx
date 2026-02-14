@@ -1,11 +1,12 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useEffect, useState, useRef, useCallback } from "react";
 import { useParams, useRouter } from "next/navigation";
 import { Star } from "lucide-react";
 import axiosInstance from "@/lib/axiosInstance";
 import RecommendedProducts from "@/components/ui/RecommendedProducts";
 import AddToCartButton from "@/lib/cartApi";
+import ReviewsSection from "@/components/ui/reviewsSection";
 
 export default function ProductPage() {
   const { id } = useParams();
@@ -14,7 +15,18 @@ export default function ProductPage() {
   const [currentImages, setCurrentImages] = useState<string[]>([]);
   const [selectedImage, setSelectedImage] = useState<string | null>(null);
   const [loading, setLoading] = useState(true);
+  const [isZooming, setIsZooming] = useState(false);
+  const [zoomPosition, setZoomPosition] = useState({ x: 0, y: 0 });
+  const mainImageRef = useRef<HTMLDivElement>(null);
   const router = useRouter();
+
+  const handleMouseMove = useCallback((e: React.MouseEvent<HTMLDivElement>) => {
+    if (!mainImageRef.current) return;
+    const rect = mainImageRef.current.getBoundingClientRect();
+    const x = ((e.clientX - rect.left) / rect.width) * 100;
+    const y = ((e.clientY - rect.top) / rect.height) * 100;
+    setZoomPosition({ x, y });
+  }, []);
 
   useEffect(() => {
     if (!id) return;
@@ -69,35 +81,65 @@ export default function ProductPage() {
   return (
     <div className="bg-background min-h-screen">
       <div className="max-w-7xl mx-auto px-4 md:px-8 py-8 md:py-12">
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-8 md:gap-12 mb-16">
-          {/* Product Images Section */}
-          <div className="flex flex-col-reverse md:flex-row gap-4">
-            {/* Thumbnails */}
-            <div className="flex md:flex-col gap-3 overflow-x-auto md:overflow-y-auto max-h-[500px] md:max-w-[120px]">
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-6 lg:gap-10 mb-16">
+          {/* Product Images Section — Amazon-style */}
+          <div className="flex flex-col-reverse lg:flex-row gap-3 lg:sticky lg:top-6 lg:self-start">
+            {/* Thumbnails — vertical strip on desktop, horizontal on mobile */}
+            <div className="flex lg:flex-col gap-2 overflow-x-auto lg:overflow-y-auto lg:max-h-[520px] py-1 lg:py-0 px-1 lg:px-0 scrollbar-thin">
               {currentImages.map((img: string, index: number) => (
                 <button
                   key={img + index}
                   onClick={() => setSelectedImage(img)}
-                  className={`flex-shrink-0 border-2 rounded-lg overflow-hidden transition-all duration-200 ${
-                    selectedImage === img ? "border-accent" : "border-border hover:border-muted-foreground"
+                  onMouseEnter={() => setSelectedImage(img)}
+                  className={`flex-shrink-0 w-[60px] h-[60px] lg:w-[72px] lg:h-[72px] rounded-md overflow-hidden border-2 transition-all duration-150 ${
+                    selectedImage === img
+                      ? "border-accent shadow-md ring-1 ring-accent/30"
+                      : "border-border hover:border-accent/50"
                   }`}
                 >
                   <img
                     src={img}
                     alt={`Thumbnail ${index + 1}`}
-                    className="w-24 h-24 md:w-28 md:h-28 object-cover bg-secondary"
+                    className="w-full h-full object-cover bg-white"
                   />
                 </button>
               ))}
             </div>
 
-            {/* Main Image */}
-            <div className="flex-1 flex items-center justify-center border border-border rounded-xl overflow-hidden bg-secondary">
-              <img
-                src={selectedImage || currentImages[0]}
-                alt={product.name}
-                className="w-full h-auto object-contain max-h-[500px] p-4"
-              />
+            {/* Main Image with Zoom */}
+            <div className="flex-1 relative">
+              <div
+                ref={mainImageRef}
+                className="relative w-full aspect-square border border-border rounded-xl overflow-hidden bg-white cursor-crosshair"
+                onMouseEnter={() => setIsZooming(true)}
+                onMouseLeave={() => setIsZooming(false)}
+                onMouseMove={handleMouseMove}
+              >
+                <img
+                  src={selectedImage || currentImages[0]}
+                  alt={product.name}
+                  className="w-full h-full object-contain p-4 transition-opacity duration-200"
+                  style={{ opacity: isZooming ? 0.4 : 1 }}
+                  draggable={false}
+                />
+                {/* Zoomed overlay */}
+                {isZooming && (
+                  <div
+                    className="absolute inset-0 pointer-events-none bg-no-repeat"
+                    style={{
+                      backgroundImage: `url(${selectedImage || currentImages[0]})`,
+                      backgroundSize: '250%',
+                      backgroundPosition: `${zoomPosition.x}% ${zoomPosition.y}%`,
+                    }}
+                  />
+                )}
+              </div>
+              {/* Image counter badge */}
+              {currentImages.length > 1 && (
+                <div className="absolute bottom-3 right-3 bg-black/60 text-white text-xs px-2.5 py-1 rounded-full backdrop-blur-sm">
+                  {currentImages.indexOf(selectedImage || currentImages[0]) + 1} / {currentImages.length}
+                </div>
+              )}
             </div>
           </div>
 
@@ -113,24 +155,29 @@ export default function ProductPage() {
               </h1>
             </div>
 
-            {/* Rating */}
-            <div className="flex items-center gap-3 mb-6">
-              <div className="flex items-center gap-1">
-                {Array.from({ length: 5 }).map((_, i) => (
-                  <Star
-                    key={i}
-                    className={`h-5 w-5 ${
-                      i < Math.floor(product.rating || 4)
-                        ? "fill-accent text-accent"
-                        : "text-muted-foreground"
-                    }`}
-                  />
-                ))}
-              </div>
-              <span className="text-sm text-muted-foreground">
-                ({product.numReviews || 0} reviews)
-              </span>
-            </div>
+            {/* Rating — only show if there are reviews */}
+            {(product.numReviews > 0 || product.rating > 0) && (
+              <button 
+                onClick={() => document.getElementById('reviews')?.scrollIntoView({ behavior: 'smooth' })}
+                className="flex items-center gap-3 mb-6 hover:opacity-80 transition-opacity"
+              >
+                <div className="flex items-center gap-1">
+                  {Array.from({ length: 5 }).map((_, i) => (
+                    <Star
+                      key={i}
+                      className={`h-5 w-5 ${
+                        i < Math.floor(product.rating || 0)
+                          ? "fill-accent text-accent"
+                          : "text-muted-foreground"
+                      }`}
+                    />
+                  ))}
+                </div>
+                <span className="text-sm text-muted-foreground underline decoration-dotted underline-offset-4">
+                  ({product.numReviews} reviews)
+                </span>
+              </button>
+            )}
 
             {/* Description */}
             <p className="text-foreground/80 mb-6 leading-relaxed">
@@ -213,17 +260,19 @@ export default function ProductPage() {
             {/* Action Buttons */}
             <div className="flex gap-3">
               <button
-                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground py-3 rounded-lg text-base font-semibold transition-all duration-200 disabled:opacity-50 disabled:cursor-not-allowed"
+                className="flex-1 bg-accent hover:bg-accent/90 text-accent-foreground py-3 rounded-lg text-base font-semibold transition-all duration-200 active:scale-95 disabled:opacity-50 disabled:cursor-not-allowed"
                 disabled={selectedVariant?.stock === 0}
                 onClick={handleBuyNow}
               >
-                BUY
+                BUY NOW
               </button>
 
               <div className="flex-1">
                 <AddToCartButton
                   productId={product._id}
                   variantLabel={selectedVariant?.label}
+                  fullWidth
+                  showLabel
                 />
               </div>
             </div>
@@ -252,6 +301,11 @@ export default function ProductPage() {
               </div>
             </div>
           </div>
+        </div>
+
+        {/* Reviews Section */}
+        <div className="mb-16">
+          <ReviewsSection productId={product._id} />
         </div>
 
         {/* Recommended Products */}

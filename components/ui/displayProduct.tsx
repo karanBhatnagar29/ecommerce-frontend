@@ -2,7 +2,6 @@
 
 import React, { useEffect, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { Button } from "@/components/ui/button";
 import { Star } from "lucide-react";
 import Image from "next/image";
 import AddToCartButton from "@/lib/cartApi";
@@ -22,9 +21,12 @@ type Product = {
 
 import axiosInstance from "@/lib/axiosInstance";
 
+import { useWishlist } from "@/lib/wishlistContext";
+
 const ProductGrid = () => {
   const router = useRouter();
   const [products, setProducts] = useState<Product[]>([]);
+  const { addToWishlist, removeFromWishlist, isInWishlist } = useWishlist();
 
   useEffect(() => {
     const fetchData = async () => {
@@ -50,8 +52,12 @@ const ProductGrid = () => {
     router.push("/checkout");
   };
 
-  const handleAddToWishlist = (product: Product) => {
-    console.log("Add to Wishlist:", product.name);
+  const handleWishlistClick = (product: Product) => {
+    if (isInWishlist(product._id)) {
+      removeFromWishlist(product._id);
+    } else {
+      addToWishlist(product._id);
+    }
   };
 
   return (
@@ -71,6 +77,7 @@ const ProductGrid = () => {
             const price = product.variants?.[0]?.price ?? 0;
             const originalPrice = price + 300;
             const discount = Math.round(((originalPrice - price) / originalPrice) * 100);
+            const isLiked = isInWishlist(product._id);
 
             return (
               <Card
@@ -103,11 +110,18 @@ const ProductGrid = () => {
                       {product.name}
                     </h3>
 
-                    {product.rating && (
+                    {product.rating != null && product.rating > 0 && (
                       <div className="flex items-center mt-2 text-xs">
-                        <div className="flex text-accent">
+                        <div className="flex">
                           {[...Array(5)].map((_, i) => (
-                            <Star key={i} className="w-3 h-3 fill-accent" />
+                            <Star
+                              key={i}
+                              className={`w-3 h-3 ${
+                                i < Math.round(product.rating!)
+                                  ? "fill-accent text-accent"
+                                  : "fill-gray-200 text-gray-200"
+                              }`}
+                            />
                           ))}
                         </div>
                         <span className="ml-1 text-muted-foreground">
@@ -129,30 +143,67 @@ const ProductGrid = () => {
                     </div>
                   </div>
 
-                  {/* Buttons Row */}
-                  <div className="flex gap-2">
-                    {/* Add to Cart */}
-                    <div className="flex-1" onClick={(e) => e.stopPropagation()}>
-                      <AddToCartButton
-                        productId={product._id}
-                        variantLabel={product.variants?.[0]?.label}
-                      />
-                    </div>
-
-                    {/* Wishlist */}
-                    <Button
-                      size="sm"
-                      variant="outline"
-                      className="text-accent border-border hover:bg-secondary"
+                  {/* Buttons */}
+                  <div className="space-y-2">
+                    {/* Buy Now */}
+                    <button
+                      className="w-full bg-accent hover:bg-accent/90 text-accent-foreground py-2.5 rounded-lg text-sm font-semibold transition-all duration-200 active:scale-[0.97]"
                       onClick={(e) => {
                         e.stopPropagation();
-                        handleAddToWishlist(product);
+                        handleBuyNow(product);
                       }}
                     >
-                      <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                        <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
-                      </svg>
-                    </Button>
+                      Buy Now
+                    </button>
+
+                    {/* Cart + Wishlist row */}
+                    <div className="flex gap-2 items-stretch">
+                      <div className="flex-1" onClick={(e) => e.stopPropagation()}>
+                        <AddToCartButton
+                          productId={product._id}
+                          variantLabel={product.variants?.[0]?.label}
+                          fullWidth
+                        />
+                      </div>
+
+                      {/* Wishlist */}
+                      <button
+                        className={`
+                          relative w-10 rounded-lg border-2 flex items-center justify-center
+                          transition-all duration-300 active:scale-90
+                          ${isLiked
+                            ? "border-red-400 bg-red-50 text-red-500"
+                            : "border-border hover:border-red-300 hover:bg-red-50/50 text-muted-foreground"
+                          }
+                        `}
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          handleWishlistClick(product);
+                        }}
+                      >
+                        <svg
+                          className={`w-4 h-4 transition-all duration-300 ${
+                            isLiked ? "scale-110 animate-heart-pop" : "scale-100"
+                          }`}
+                          fill={isLiked ? "currentColor" : "none"}
+                          stroke="currentColor"
+                          viewBox="0 0 24 24"
+                        >
+                          <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M4.318 6.318a4.5 4.5 0 000 6.364L12 20.364l7.682-7.682a4.5 4.5 0 00-6.364-6.364L12 7.636l-1.318-1.318a4.5 4.5 0 00-6.364 0z" />
+                        </svg>
+                        {isLiked && (
+                          <span className="absolute inset-0 flex items-center justify-center pointer-events-none">
+                            {[...Array(6)].map((_, i) => (
+                              <span
+                                key={i}
+                                className="absolute w-1 h-1 bg-red-400 rounded-full animate-burst-particle"
+                                style={{ '--angle': `${i * 60}deg` } as React.CSSProperties}
+                              />
+                            ))}
+                          </span>
+                        )}
+                      </button>
+                    </div>
                   </div>
                 </CardContent>
               </Card>
